@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Portal | Live Alerts</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px;
+        }
+        .portal-card {
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(17, 25, 40, 0.75);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .login-screen {
+            text-align: center;
+        }
+        .error-msg {
+            color: #ff5252;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="portal-card" id="login-section">
+        <h2 style="color: #64b5f6; text-align: center;">🔔 User Access Portal</h2>
+        <p style="color: #aaa; text-align: center;">Enter your username to view your personal alert stream.</p>
+        
+        <input type="text" id="username-input" placeholder="e.g. javid" style="margin-top: 20px; font-size: 1.1em; text-align: center;">
+        <div id="error-msg" class="error-msg">User not found. Please check your username.</div>
+        <button onclick="login()" style="margin-top: 15px; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white;">Access Dashboard</button>
+    </div>
+
+    <div class="portal-card" id="dashboard-section" style="display: none; max-width: 800px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="margin:0; font-size: 1.5em;">🔔 Live Alerts</h2>
+            <div style="text-align: right;">
+                <div id="user-badge" style="color: #64b5f6; font-weight: bold; font-size: 1.2em;">@username</div>
+                <div id="status-indicator" class="status-disconnected" style="font-size: 0.8em;">● Connecting...</div>
+            </div>
+        </div>
+
+        <div id="notification-feed" class="notification-feed" style="max-height: 70vh;">
+            <div style="text-align: center; color: #666; padding: 40px;">Loading your alerts...</div>
+        </div>
+        
+        <button onclick="logout()" style="margin-top: 20px; background: transparent; border: 1px solid #444; color: #888;">Logout</button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+        let stompClient = null;
+        let currentUser = null;
+
+        async function login() {
+            const username = document.getElementById('username-input').value.trim();
+            if (!username) {
+                showError('Please enter a username');
+                return;
+            }
+            
+            // Validate user exists
+            try {
+                const response = await fetch(`${API_URL}/users`);
+                const users = await response.json();
+                const userExists = users.some(u => u.username === username);
+                
+                if (!userExists) {
+                    showError('User not found. Please register with admin first.');
+                    return;
+                }
+                
+                currentUser = username;
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                document.getElementById('user-badge').innerText = '@' + currentUser;
+                
+                // Load history first
+                await loadUserHistory();
+                
+                // Then connect to WebSocket for real-time
+                connect();
+                
+            } catch (err) {
+                showError('Connection error. Please try again.');
+                console.error(err);
+            }
+        }
+
+        function showError(msg) {
+            const errorDiv = document.getElementById('error-msg');
+            errorDiv.innerText = msg;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            if(stompClient) stompClient.disconnect();
+            location.reload();
+        }
+
+        async function loadUserHistory() {
+            try {
+                const response = await fetch(`${API_URL}/notifications/user/${currentUser}`);
+                if (response.ok) {
+                    const notifications = await response.json();
+                    const feed = document.getElementById('notification-feed');
+                    feed.innerHTML = '';
+                    
+                    if (notifications.length === 0) {
+                        feed.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No alerts yet</div>';
+                        return;
+                    }
+                    
+                    notifications.forEach(notif => {
+                        displayNotification(notif);
+                    });
+                } else if (response.status === 404) {
+                    showError('User not found');
+                    logout();
+                }
+            } catch (err) {
+                console.error('Failed to load history', err);
+            }
+        }
+
+        function connect() {
+            const socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+            
+            stompClient.connect({}, function (frame) {
+                document.getElementById('status-indicator').innerText = '● Live System Connected';
+                document.getElementById('status-indicator').className = 'status-connected';
+                
+                // Subscribe to public broadcasts
+                stompClient.subscribe('/topic/public', function (notif) {
+                    const notification = JSON.parse(notif.body);
+                    displayNotification(notification, true); // true = prepend (new)
+                });
+                
+                // Subscribe to user-specific
+                stompClient.subscribe('/topic/user/' + currentUser, function (notif) {
+                    const notification = JSON.parse(notif.body);
+                    displayNotification(notification, true);
+                });
+
+            }, function(error) {
+                document.getElementById('status-indicator').innerText = '● Disconnected';
+                document.getElementById('status-indicator').className = 'status-disconnected';
+                setTimeout(connect, 3000);
+            });
+        }
+
+        function displayNotification(notification, prepend = false) {
+            const feed = document.getElementById('notification-feed');
+            
+            // Remove "no alerts" message if exists
+            if(feed.innerText.includes("No alerts yet") || feed.innerText.includes("Loading")) {
+                feed.innerHTML = '';
+            }
+
+            const div = document.createElement('div');
+            div.className = `notification-item ${notification.priority}`;
+            
+            const time = new Date(notification.timestamp).toLocaleTimeString();
+            const isTargeted = notification.recipient && notification.recipient.username === currentUser;
+            
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <div>
+                            <span class="badge" style="margin-right: 8px;">${notification.priority}</span>
+                            ${isTargeted ? '<span style="color: #64b5f6; font-size: 0.85em;">👤 Personal</span>' : '<span style="color: #888; font-size: 0.85em;">📢 Broadcast</span>'}
+                        </div>
+                        <div style="margin-top: 8px; font-size: 1.05em; line-height: 1.4;">${notification.message}</div>
+                    </div>
+                    <div class="timestamp">${time}</div>
+                </div>
+            `;
+            
+            if (prepend) {
+                feed.prepend(div);
+                // Add animation
+                div.style.animation = 'slideIn 0.4s ease-out';
+            } else {
+                feed.appendChild(div);
+            }
+        }
+    </script>
+</body>
+</html>
