@@ -4,7 +4,7 @@ A robust, enterprise-grade real-time notification system built with **Java Sprin
 
 ---
 
-## 🚀 Features
+## Features
 
 ### Core Functionality
 - **Real-Time Messaging**: WebSocket-based instant notification delivery using STOMP protocol
@@ -32,7 +32,7 @@ A robust, enterprise-grade real-time notification system built with **Java Sprin
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────┐      REST API       ┌──────────────────┐
@@ -60,7 +60,7 @@ A robust, enterprise-grade real-time notification system built with **Java Sprin
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before running this project, ensure you have the following installed:
 
@@ -72,7 +72,7 @@ Before running this project, ensure you have the following installed:
 
 ---
 
-## 🔧 Installation & Setup
+## Installation & Setup
 
 ### 1. Clone the Repository
 ```bash
@@ -113,7 +113,7 @@ mvn clean install
 
 ---
 
-## 🚀 Running the Application
+## Running the Application
 
 ### Start the Backend (Spring Boot)
 ```bash
@@ -133,7 +133,7 @@ The User Portal will be available at **http://localhost:8081/user.html**
 
 ---
 
-## 🌐 Accessing the Application
+## Accessing the Application
 
 ### Admin Dashboard
 **URL**: [http://localhost:8080/index.html](http://localhost:8080/index.html)
@@ -165,7 +165,7 @@ The User Portal will be available at **http://localhost:8081/user.html**
 
 ---
 
-## 📡 API Documentation
+## API Documentation
 
 ### Notification Endpoints
 
@@ -237,7 +237,7 @@ GET /api/users
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - **Spring Boot 3.2.2** - Application framework
@@ -261,7 +261,7 @@ GET /api/users
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 RealTimeNotificationMS/
@@ -307,7 +307,7 @@ RealTimeNotificationMS/
 
 ---
 
-## 🔐 Security Features
+## Security Features
 
 - **Rate Limiting**: 5 messages per minute per user
 - **Input Validation**: Username and message validation
@@ -317,7 +317,7 @@ RealTimeNotificationMS/
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Manual Testing Steps
 
@@ -339,7 +339,7 @@ Send the same message twice within 60 seconds - the second should be rejected.
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Port 8080 Already in Use
 ```bash
@@ -373,7 +373,7 @@ sudo systemctl restart rabbitmq-server
 
 ---
 
-## 📊 Performance Metrics
+## Performance Metrics
 
 - **WebSocket Latency**: < 50ms for local connections
 - **Message Throughput**: 1000+ messages/second
@@ -383,7 +383,7 @@ sudo systemctl restart rabbitmq-server
 
 ---
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - [ ] PostgreSQL/MySQL support for production
 - [ ] JWT-based authentication
@@ -398,27 +398,65 @@ sudo systemctl restart rabbitmq-server
 
 ---
 
-## 📝 License
+## Screenshots & Demo
 
-This project is licensed under the MIT License.
+### Project Demo
+[**▶️ Watch Project Demo Video**](screenshots/project_demo.webm)
 
----
+### Application Screenshots
+<div align="center">
 
-## 👨‍💻 Author
+### Admin Dashboard Overview
+*The central hub for managing notifications and monitoring system health.*
+<img src="screenshots/img01.png" width="95%" alt="Admin Dashboard Overview" />
 
-**DataValley Team**
+### User Management
+*Quickly add and manage users within the system database.*
+<img src="screenshots/img02.png" width="95%" alt="User Creation" />
 
-For questions or support, please contact the development team.
+### Sending Broadcasts
+*Interface for sending real-time notifications to all connected users.*
+<img src="screenshots/img03.png" width="95%" alt="Broadcast Notification" />
 
----
+### Targeted Messaging
+*Directing messages to specific users with priority levels.*
+<img src="screenshots/img04.png" width="95%" alt="Targeted Notification" />
 
-## 🙏 Acknowledgments
+### User Portal Login
+*Secure, username-based access for the end-user notification portal.*
+<img src="screenshots/img05.png" width="95%" alt="User Login" />
 
-- Spring Boot Team for the excellent framework
-- RabbitMQ for reliable message queuing
-- SockJS & STOMP.js for WebSocket support
-- H2 Database for lightweight storage
+### Real-time Notification Feed
+*The user-facing dashboard where notifications appear instantly via WebSockets.*
+<img src="screenshots/img06.png" width="95%" alt="User Portal Feed" />
 
----
+### Visual Alerts & Toasts
+*Toast notifications providing immediate feedback on incoming messages.*
+<img src="screenshots/img07.png" width="95%" alt="Toast Notifications" />
 
-**Happy Coding! 🚀**
+### Rate Limiting in Action
+*System rejection of excessive messaging to prevent spam (429 Too Many Requests).*
+<img src="screenshots/img08.png" width="95%" alt="Rate Limit Error" />
+
+### Deduplication Prevention
+*Automatic filtering of identical messages sent within the 60-second window.*
+<img src="screenshots/img09.png" width="95%" alt="Deduplication Error" />
+
+### System Performance Metrics
+*Monitoring message throughput and WebSocket connection latency.*
+<img src="screenshots/img10.png" width="95%" alt="System Metrics" />
+
+### Responsive Mobile View
+*Fully optimized interface for both Admin and User portals on mobile devices.*
+<img src="screenshots/img11.png" width="95%" alt="Mobile View" />
+
+### End-to-End Workflow
+*A complete view of the notification pipeline from Admin trigger to User receipt.*
+<img src="screenshots/img12.png" width="95%" alt="Full System Integration" />
+
+</div>
+
+
+
+
+
