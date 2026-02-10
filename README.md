@@ -97,7 +97,10 @@ brew services start rabbitmq
 ```
 
 **Windows:**
-Download and install from [RabbitMQ Official Site](https://www.rabbitmq.com/download.html)
+1. Download the installer from the [RabbitMQ Official Site](https://www.rabbitmq.com/download.html).
+2. Run the installer and follow the on-screen instructions.
+3. Ensure the RabbitMQ service is started via the Services management console (`services.msc`).
+
 
 ### 3. Verify RabbitMQ is Running
 ```bash
@@ -116,17 +119,31 @@ mvn clean install
 ## Running the Application
 
 ### Start the Backend (Spring Boot)
+**Linux/macOS:**
 ```bash
 mvn spring-boot:run
 ```
+
+**Windows:**
+```powershell
+mvn spring-boot:run
+```
+
 
 The backend will start on **http://localhost:8080**
 
 ### Start the User Portal Server
 Open a new terminal and run:
 ```bash
+# Linux/macOS
 cd src/main/resources/static
 python3 -m http.server 8081
+```
+
+```powershell
+# Windows
+cd src\main\resources\static
+python -m http.server 8081
 ```
 
 The User Portal will be available at **http://localhost:8081/user.html**
