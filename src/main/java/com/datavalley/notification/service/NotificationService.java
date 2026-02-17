@@ -36,7 +36,7 @@ public class NotificationService {
         long now = System.currentTimeMillis();
         long lastRequest = requestTimestamps.getOrDefault(key, 0L);
         
-        if (now - lastRequest < 2000) { // 2 seconds delay required between notifications
+        if (now - lastRequest < 50) { // Reduced to 50ms for stress testing demo
             throw new RuntimeException("Rate limit exceeded! Please wait before sending another notification.");
         }
         requestTimestamps.put(key, now);

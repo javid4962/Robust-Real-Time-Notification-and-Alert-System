@@ -27,20 +27,25 @@ function connect() {
             // Subscribe to public to get real-time updates
             stompClient.subscribe('/topic/public', function (notification) {
                 // Refresh stats and history when new message arrives
-                setTimeout(() => {
-                    loadStats();
-                    loadNotificationHistory();
-                }, 500);
+                // Optimization: Throttle refreshes if many messages arrive at once
+                if (!window.refreshPending) {
+                    window.refreshPending = true;
+                    setTimeout(() => {
+                        loadStats();
+                        loadNotificationHistory();
+                        window.refreshPending = false;
+                    }, 500);
+                }
             });
         } else {
             // USER PORTAL: Subscribe to topics
             stompClient.subscribe('/topic/public', function (notification) {
-                showNotification(JSON.parse(notification.body));
+                handleIncomingMessage(JSON.parse(notification.body));
             });
 
             if (currentUser !== 'guest') {
                 stompClient.subscribe('/topic/user/' + currentUser, function (notification) {
-                    showNotification(JSON.parse(notification.body));
+                    handleIncomingMessage(JSON.parse(notification.body));
                 });
                 showToast(`Subscribed to alerts for: ${currentUser}`);
             } else {
@@ -228,6 +233,16 @@ async function createUser(event) {
 }
 
 // ===== USER PORTAL FUNCTIONS =====
+
+function handleIncomingMessage(data) {
+    if (Array.isArray(data)) {
+        console.log(`Received batch of ${data.length} messages`);
+        data.forEach(notification => showNotification(notification));
+        showToast(`Received ${data.length} new notifications`);
+    } else {
+        showNotification(data);
+    }
+}
 
 function showNotification(notification) {
     const feed = document.getElementById('notification-feed');

@@ -70,8 +70,10 @@
         let stompClient = null;
         let currentUser = null;
 
-        async function login() {
-            const username = document.getElementById('username-input').value.trim();
+        async function login(savedUsername = null) {
+            const usernameInput = document.getElementById('username-input');
+            const username = savedUsername || usernameInput.value.trim();
+            
             if (!username) {
                 showError('Please enter a username');
                 return;
@@ -84,11 +86,14 @@
                 const userExists = users.some(u => u.username === username);
                 
                 if (!userExists) {
-                    showError('User not found. Please register with admin first.');
+                    if (!savedUsername) showError('User not found. Please register with admin first.');
+                    else logout(); // Invalid saved session
                     return;
                 }
                 
                 currentUser = username;
+                localStorage.setItem('notification_user', currentUser); // Save session
+
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('dashboard-section').style.display = 'block';
                 document.getElementById('user-badge').innerText = '@' + currentUser;
@@ -116,6 +121,7 @@
 
         function logout() {
             if(stompClient) stompClient.disconnect();
+            localStorage.removeItem('notification_user');
             location.reload();
         }
 
@@ -207,6 +213,13 @@
                 feed.appendChild(div);
             }
         }
+        // Check for saved session on load
+        window.onload = function() {
+            const savedUser = localStorage.getItem('notification_user');
+            if (savedUser) {
+                login(savedUser);
+            }
+        };
     </script>
 </body>
 </html>

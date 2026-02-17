@@ -14,6 +14,9 @@ public class NotificationConsumer {
     private WebSocketDispatcher webSocketDispatcher;
 
     @Autowired
+    private NotificationBatcher notificationBatcher;
+
+    @Autowired
     private NotificationRepository notificationRepository;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_CRITICAL)
@@ -23,10 +26,14 @@ public class NotificationConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NORMAL)
     public void consumeNormal(Notification notification) {
-        processNotification(notification);
+        processNotification(notification, true);
     }
 
     private void processNotification(Notification notification) {
+        processNotification(notification, false);
+    }
+
+    private void processNotification(Notification notification, boolean batch) {
         System.out.println("Processing Notification: " + notification.getId() + " Priority: " + notification.getPriority());
 
         // Check User Preferences
@@ -43,7 +50,11 @@ public class NotificationConsumer {
 
         // Dispatch to WebSocket
         try {
-            webSocketDispatcher.dispatch(notification);
+            if (batch) {
+                notificationBatcher.addToBatch(notification);
+            } else {
+                webSocketDispatcher.dispatch(notification);
+            }
         } catch (Exception e) {
             System.err.println("Failed to dispatch to WebSocket: " + e.getMessage());
             // Throwing exception will trigger RabbitMQ retry if configured

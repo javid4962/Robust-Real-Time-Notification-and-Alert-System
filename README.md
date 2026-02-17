@@ -4,181 +4,169 @@ A robust, enterprise-grade real-time notification system built with **Java Sprin
 
 ---
 
+## Quick Start (Beginner Friendly)
+
+Follow these steps to get the project running in under 5 minutes.
+
+### 1. Prerequisites
+Make sure you have these installed on your computer:
+- **Java 17+** (to run the backend)
+- **Maven** (to build the project)
+- **Docker** (Recommended for RabbitMQ) OR manual RabbitMQ installation
+- **Python 3** (to run the frontend)
+
+### 2. Start RabbitMQ (The Message Broker)
+The easiest way is using Docker. Open a terminal in the project folder and run:
+
+```bash
+docker-compose up -d
+```
+*This starts a RabbitMQ server in the background on port 5672.*
+
+### 3. Start the Backend (The Brain)
+Open a new terminal window in the project folder:
+
+**Linux/macOS:**
+```bash
+./mvnw spring-boot:run
+# OR if you have maven installed:
+mvn spring-boot:run
+```
+
+**Windows:**
+```powershell
+.\mvnw spring-boot:run
+# OR
+mvn spring-boot:run
+```
+
+*Wait until you see "Started RealTimeNotificationApplication" in the logs. The backend is now ready at `http://localhost:8080`.*
+
+### 4. Start the Frontend (The User Interface)
+Open a **new** terminal window and navigate to the static files:
+
+**Linux/macOS:**
+```bash
+cd src/main/resources/static
+python3 -m http.server 8081
+```
+
+**Windows:**
+```powershell
+cd src\main\resources\static
+python -m http.server 8081
+```
+
+*You can now access the User Portal at `http://localhost:8081/user.html`.*
+
+---
+
 ## Features
 
 ### Core Functionality
-- **Real-Time Messaging**: WebSocket-based instant notification delivery using STOMP protocol
+- **Real-Time Messaging**: WebSocket-based instant notification delivery using STOMP protocol.
 - **Dual Delivery Modes**: 
-  - **Broadcast**: Send alerts to all connected users
-  - **Targeted**: Send personalized notifications to specific users
-- **Priority Queue System**: HIGH, MEDIUM, LOW priority routing via RabbitMQ
-- **Rate Limiting**: Prevents spam with configurable limits (5 messages/minute per user)
-- **Message Deduplication**: Prevents duplicate notifications within a 60-second window
-- **Persistent Storage**: All notifications stored in H2 database with full history
+  - **Broadcast**: Send alerts to all connected users.
+  - **Targeted**: Send personalized notifications to specific users.
+- **Priority Queue System**: HIGH, MEDIUM, LOW priority routing via RabbitMQ.
+- **Rate Limiting**: Prevents spam with configurable limits (5 messages/minute per user).
+- **Message Deduplication**: Prevents duplicate notifications within a 60-second window.
+- **Persistent Storage**: All notifications stored in H2 database with full history.
 
 ### Admin Dashboard
-- **Live Statistics**: Real-time counts of users and notifications
-- **Notification Management**: View complete history and delete old notifications
-- **User Management**: Create and manage user accounts
-- **Live Traffic Feed**: Monitor all notifications as they're sent
-- **Modern UI**: Glassmorphism design with dark theme and animated gradients
+- **Live Statistics**: Real-time counts of users and notifications.
+- **Notification Management**: View complete history and delete old notifications.
+- **User Management**: Create and manage user accounts.
+- **Live Traffic Feed**: Monitor all notifications as they're sent.
+- **Modern UI**: Glassmorphism design with dark theme and animated gradients.
 
 ### User Portal
-- **Authentication**: Username-based login with validation
-- **Notification History**: View all past notifications (personal + broadcasts)
-- **Real-Time Updates**: Instant delivery of new notifications via WebSocket
-- **Visual Distinction**: Clear indicators for personal vs. broadcast messages
-- **Responsive Design**: Works seamlessly on desktop and mobile
+- **Authentication**: Username-based login with validation.
+- **Notification History**: View all past notifications (personal + broadcasts).
+- **Real-Time Updates**: Instant delivery of new notifications via WebSocket.
+- **Visual Distinction**: Clear indicators for personal vs. broadcast messages.
+- **Responsive Design**: Works seamlessly on desktop and mobile.
 
 ---
 
 ## Architecture
 
-```
-┌─────────────┐      REST API       ┌──────────────────┐
-│   Admin UI  │ ───────────────────>│  Spring Boot     │
-│ (Port 8080) │                     │  Application     │
-└─────────────┘                     │                  │
-                                    │  - Controllers   │
-┌─────────────┐    WebSocket        │  - Services      │
-│  User Portal│ <──────────────────>│  - Repositories  │
-│ (Port 8081) │      (STOMP)        │                  │
-└─────────────┘                     └────────┬─────────┘
-                                             │
-                    ┌────────────────────────┼────────────────────┐
-                    │                        │                    │
-              ┌─────▼─────┐          ┌──────▼──────┐      ┌──────▼──────┐
-              │ RabbitMQ  │          │ H2 Database │      │  WebSocket  │
-              │  Queues   │          │  (In-Memory)│      │   Broker    │
-              │           │          │             │      │             │
-              │ - HIGH    │          │ - Users     │      │ - /topic/   │
-              │ - MEDIUM  │          │ - Notifs    │      │   public    │
-              │ - LOW     │          │             │      │ - /topic/   │
-              └───────────┘          └─────────────┘      │   user/{id} │
-                                                          └─────────────┘
+```mermaid
+graph TD
+    User[User / Client] -->|WebSocket STOMP| LB[Load Balancer / Gateway]
+    LB --> App[Spring Boot Application]
+    
+    subgraph "Backend Services"
+        App -->|Publish| RMQ[RabbitMQ]
+        RMQ -->|Consume| App
+        App -->|Persist| DB[(H2 Database)]
+    end
+    
+    subgraph "Queues"
+        RMQ -- High Priority --> Q1[High Queue]
+        RMQ -- Medium Priority --> Q2[Medium Queue]
+        RMQ -- Low Priority --> Q3[Low Queue]
+    end
 ```
 
 ---
 
-## Prerequisites
+## System Design Diagrams
 
-Before running this project, ensure you have the following installed:
+<div align="center">
 
-- **Java 17** or higher
-- **Maven 3.6+**
-- **RabbitMQ Server** (running on `localhost:5672`)
-- **Python 3** (for User Portal server)
-- **Modern Web Browser** (Chrome, Firefox, Edge, Safari)
+### Architecture Diagram
+<img src="screenshots/updated/img10.png" width="100%" alt="Architecture Diagram" />
+
+### Sequence Diagram
+<img src="screenshots/updated/img11.png" width="100%" alt="Sequence Diagram" />
+
+### Class Diagram
+<img src="screenshots/updated/img12.png" width="100%" alt="Class Diagram" />
+
+### Entity Relationship (ER) Diagram
+<img src="screenshots/updated/img13.png" width="100%" alt="ER Diagram" />
+
+### Deployment / Component Diagram
+<img src="screenshots/updated/img14.png" width="100%" alt="Deployment Diagram" />
+
+</div>
 
 ---
 
-## Installation & Setup
+## Detailed Installation & Setup
 
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd RealTimeNotificationMS
-```
+If you need more control or are setting up for development, follow these detailed steps.
 
-### 2. Install RabbitMQ
+### 1. Verification
+Ensure RabbitMQ is running:
+- **Docker**: `docker ps` should show `rabbitmq` container.
+- **Manual**: Access `http://localhost:15672` (guest/guest).
 
-**Ubuntu/Debian:**
-```bash
-sudo apt-get update
-sudo apt-get install rabbitmq-server
-sudo systemctl start rabbitmq-server
-sudo systemctl enable rabbitmq-server
-```
-
-**macOS (using Homebrew):**
-```bash
-brew install rabbitmq
-brew services start rabbitmq
-```
-
-**Windows:**
-1. Download the installer from the [RabbitMQ Official Site](https://www.rabbitmq.com/download.html).
-2. Run the installer and follow the on-screen instructions.
-3. Ensure the RabbitMQ service is started via the Services management console (`services.msc`).
-
-
-### 3. Verify RabbitMQ is Running
-```bash
-sudo systemctl status rabbitmq-server
-# or
-rabbitmqctl status
-```
-
-### 4. Build the Project
+### 2. Build the Project
 ```bash
 mvn clean install
 ```
 
----
+### 3. Run Stress Tests (Optional)
+To test high-volume traffic, start the **Bulk Sender** tool:
 
-## Running the Application
-
-### Start the Backend (Spring Boot)
-**Linux/macOS:**
 ```bash
-mvn spring-boot:run
+# In src/main/resources/static
+python3 -m http.server 8082
 ```
-
-**Windows:**
-```powershell
-mvn spring-boot:run
-```
-
-
-The backend will start on **http://localhost:8080**
-
-### Start the User Portal Server
-Open a new terminal and run:
-```bash
-# Linux/macOS
-cd src/main/resources/static
-python3 -m http.server 8081
-```
-
-```powershell
-# Windows
-cd src\main\resources\static
-python -m http.server 8081
-```
-
-The User Portal will be available at **http://localhost:8081/user.html**
+Access at **http://localhost:8082/bulk_sender.html**.
 
 ---
 
 ## Accessing the Application
 
-### Admin Dashboard
-**URL**: [http://localhost:8080/index.html](http://localhost:8080/index.html)
-
-**Features**:
-- Send broadcast or targeted notifications
-- Create new users
-- View live statistics (Total Users, Total Notifications)
-- Browse notification history
-- Delete old notifications
-- Monitor real-time traffic
-
-### User Portal
-**URL**: [http://localhost:8081/user.html](http://localhost:8081/user.html)
-
-**Features**:
-- Login with username (must be created in Admin first)
-- View notification history (personal + broadcasts)
-- Receive real-time notifications
-- Visual distinction between personal and broadcast alerts
-
-### H2 Database Console
-**URL**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
-
-**Credentials**:
-- JDBC URL: `jdbc:h2:mem:notification_db`
-- Username: `sa`
-- Password: *(leave empty)*
+| Component | URL | Description |
+|-----------|-----|-------------|
+| **Admin Dashboard** | [http://localhost:8080/index.html](http://localhost:8080/index.html) | Send notifications, manage users, view stats. |
+| **User Portal** | [http://localhost:8081/user.html](http://localhost:8081/user.html) | Login as a user to receive alerts. |
+| **Bulk Sender** | [http://localhost:8082/bulk_sender.html](http://localhost:8082/bulk_sender.html) | Stress test the system. |
+| **H2 Console** | [http://localhost:8080/h2-console](http://localhost:8080/h2-console) | DB Access (JDBC URL: `jdbc:h2:mem:notification_db`). |
 
 ---
 
@@ -187,10 +175,8 @@ The User Portal will be available at **http://localhost:8081/user.html**
 ### Notification Endpoints
 
 #### Send Notification
-```http
-POST /api/notifications/send
-Content-Type: application/json
-
+`POST /api/notifications/send`
+```json
 {
   "message": "System maintenance at 2 AM",
   "priority": "HIGH",
@@ -198,282 +184,64 @@ Content-Type: application/json
 }
 ```
 
-**Response**: `200 OK` with notification object
-
 #### Get All Notifications
-```http
-GET /api/notifications
-```
+`GET /api/notifications`
 
-**Response**: Array of all notifications (newest first)
+#### Get User Notifications
+`GET /api/notifications/user/{username}`
 
-#### Get User-Specific Notifications
-```http
-GET /api/notifications/user/{username}
-```
-
-**Response**: Array of notifications for the user (targeted + broadcasts)
-
-#### Delete Notification
-```http
-DELETE /api/notifications/{id}
-```
-
-**Response**: `204 No Content`
-
-#### Get Dashboard Statistics
-```http
-GET /api/notifications/stats
-```
-
-**Response**:
-```json
-{
-  "totalUsers": 5,
-  "totalNotifications": 42
-}
-```
-
-### User Endpoints
-
-#### Create User
-```http
-POST /api/users
-Content-Type: application/json
-
-{
-  "username": "javid",
-  "notificationsEnabled": true
-}
-```
-
-#### Get All Users
-```http
-GET /api/users
-```
-
----
-
-## Technology Stack
-
-### Backend
-- **Spring Boot 3.2.2** - Application framework
-- **Spring WebSocket** - Real-time communication
-- **Spring AMQP** - RabbitMQ integration
-- **Spring Data JPA** - Database abstraction
-- **H2 Database** - In-memory storage
-- **Lombok** - Boilerplate reduction
-- **RabbitMQ** - Message broker for priority queuing
-
-### Frontend
-- **HTML5** - Structure
-- **CSS3** - Styling (Glassmorphism, Gradients)
-- **JavaScript (ES6+)** - Logic
-- **SockJS** - WebSocket fallback
-- **STOMP.js** - WebSocket protocol
-
-### Build & Deployment
-- **Maven** - Dependency management
-- **Python HTTP Server** - User Portal hosting
-
----
-
-## Project Structure
-
-```
-RealTimeNotificationMS/
-├── src/
-│   ├── main/
-│   │   ├── java/com/datavalley/notification/
-│   │   │   ├── config/
-│   │   │   │   ├── RabbitMQConfig.java       # RabbitMQ queue setup
-│   │   │   │   └── WebSocketConfig.java      # WebSocket configuration
-│   │   │   ├── controller/
-│   │   │   │   ├── NotificationController.java
-│   │   │   │   ├── UserController.java
-│   │   │   │   └── GlobalExceptionHandler.java
-│   │   │   ├── model/
-│   │   │   │   ├── Notification.java
-│   │   │   │   ├── NotificationDTO.java
-│   │   │   │   ├── User.java
-│   │   │   │   └── DashboardStats.java
-│   │   │   ├── repository/
-│   │   │   │   ├── NotificationRepository.java
-│   │   │   │   └── UserRepository.java
-│   │   │   ├── service/
-│   │   │   │   ├── NotificationService.java  # Core business logic
-│   │   │   │   ├── RateLimitService.java     # Rate limiting
-│   │   │   │   ├── DeduplicationService.java # Duplicate prevention
-│   │   │   │   ├── RabbitMQProducer.java     # Message queue producer
-│   │   │   │   ├── RabbitMQConsumer.java     # Message queue consumer
-│   │   │   │   └── WebSocketDispatcher.java  # WebSocket sender
-│   │   │   ├── exception/
-│   │   │   │   └── UserNotFoundException.java
-│   │   │   └── RealTimeNotificationApplication.java
-│   │   └── resources/
-│   │       ├── static/
-│   │       │   ├── index.html    # Admin Dashboard
-│   │       │   ├── user.html     # User Portal
-│   │       │   ├── style.css     # Shared styles
-│   │       │   └── app.js        # Frontend logic
-│   │       └── application.properties
-│   └── test/
-├── pom.xml
-└── README.md
-```
-
----
-
-## Security Features
-
-- **Rate Limiting**: 5 messages per minute per user
-- **Input Validation**: Username and message validation
-- **Exception Handling**: Global error handling with proper HTTP status codes
-- **User Authentication**: Username-based login for User Portal
-- **Database Validation**: User existence checks before operations
-
----
-
-## Testing
-
-### Manual Testing Steps
-
-1. **Start Backend**: `mvn spring-boot:run`
-2. **Start User Portal**: `python3 -m http.server 8081` (in static folder)
-3. **Open Admin Dashboard**: http://localhost:8080/index.html
-4. **Create a User**: Use "Quick Add User" section (e.g., username: "javid")
-5. **Send Broadcast**: Type a message, select priority, leave "Target User" empty, click "BROADCAST"
-6. **Send Targeted**: Enter username in "Target User", click "BROADCAST"
-7. **Open User Portal**: http://localhost:8081/user.html
-8. **Login**: Enter the username you created
-9. **Verify**: Check that notifications appear in both portals
-
-### Rate Limiting Test
-Send 6 messages rapidly - the 6th should be rejected with a 429 error.
-
-### Deduplication Test
-Send the same message twice within 60 seconds - the second should be rejected.
+#### Dashboard Stats
+`GET /api/notifications/stats`
 
 ---
 
 ## Troubleshooting
 
-### Port 8080 Already in Use
-```bash
-# Find process using port 8080
-lsof -i :8080
-# or
-netstat -tuln | grep 8080
+### Common Issues
 
-# Kill the process
-kill -9 <PID>
-```
+**1. "Connection Refused" usually means a service isn't running.**
+- If `localhost:8080` fails -> Start Spring Boot.
+- If `localhost:5672` fails -> Start RabbitMQ (`docker-compose up`).
 
-### RabbitMQ Connection Failed
-```bash
-# Check RabbitMQ status
-sudo systemctl status rabbitmq-server
+**2. Port 8080 Already in Use**
+- Find the process: `lsof -i :8080` (Linux/Mac) or `netstat -ano | findstr :8080` (Windows).
+- Kill it and try again.
 
-# Restart RabbitMQ
-sudo systemctl restart rabbitmq-server
-```
-
-### WebSocket Connection Failed
-- Ensure backend is running on port 8080
-- Check browser console for errors
-- Verify firewall settings
-
-### User Portal Not Loading
-- Ensure Python HTTP server is running on port 8081
-- Check that you're in the `src/main/resources/static` directory
-- Try clearing browser cache
+**3. WebSocket Connection Failed**
+- Check browser console (F12).
+- Ensure your firewall isn't blocking WebSocket connections.
 
 ---
 
-## Performance Metrics
+## Application Output & Screenshots
 
-- **WebSocket Latency**: < 50ms for local connections
-- **Message Throughput**: 1000+ messages/second
-- **Rate Limit**: 5 messages/minute per user
-- **Deduplication Window**: 60 seconds
-- **Database**: In-memory H2 (fast read/write)
-
----
-
-## Future Enhancements
-
-- [ ] PostgreSQL/MySQL support for production
-- [ ] JWT-based authentication
-- [ ] Email/SMS notification integration
-- [ ] Push notifications for mobile apps
-- [ ] Advanced analytics dashboard
-- [ ] Message templates
-- [ ] Scheduled notifications
-- [ ] Multi-language support
-- [ ] Docker containerization
-- [ ] Kubernetes deployment
-
----
-
-## Screenshots & Demo
-
-### Project Demo
-[**▶️ Watch Project Demo Video**](screenshots/project_demo.webm)
-
-### Application Screenshots
 <div align="center">
 
 ### Admin Dashboard Overview
-*The central hub for managing notifications and monitoring system health.*
-<img src="screenshots/img01.png" width="95%" alt="Admin Dashboard Overview" />
+<img src="screenshots/updated/img01.png" width="100%" alt="Admin Dashboard Overview" />
 
 ### User Management
-*Quickly add and manage users within the system database.*
-<img src="screenshots/img02.png" width="95%" alt="User Creation" />
+<img src="screenshots/updated/img02.png" width="100%" alt="User Creation" />
 
 ### Sending Broadcasts
-*Interface for sending real-time notifications to all connected users.*
-<img src="screenshots/img03.png" width="95%" alt="Broadcast Notification" />
+<img src="screenshots/updated/img03.png" width="100%" alt="Broadcast Notification" />
 
 ### Targeted Messaging
-*Directing messages to specific users with priority levels.*
-<img src="screenshots/img04.png" width="95%" alt="Targeted Notification" />
+<img src="screenshots/updated/img04.png" width="100%" alt="Targeted Notification" />
 
 ### User Portal Login
-*Secure, username-based access for the end-user notification portal.*
-<img src="screenshots/img05.png" width="95%" alt="User Login" />
+<img src="screenshots/updated/img05.png" width="100%" alt="User Login" />
 
 ### Real-time Notification Feed
-*The user-facing dashboard where notifications appear instantly via WebSockets.*
-<img src="screenshots/img06.png" width="95%" alt="User Portal Feed" />
+<img src="screenshots/updated/img06.png" width="100%" alt="User Portal Feed" />
 
-### Visual Alerts & Toasts
-*Toast notifications providing immediate feedback on incoming messages.*
-<img src="screenshots/img07.png" width="95%" alt="Toast Notifications" />
+### Visual Alerts
+<img src="screenshots/updated/img07.png" width="100%" alt="Visual Alerts" />
 
-### Rate Limiting in Action
-*System rejection of excessive messaging to prevent spam (429 Too Many Requests).*
-<img src="screenshots/img08.png" width="95%" alt="Rate Limit Error" />
+### Rate Limiting
+<img src="screenshots/updated/img08.png" width="100%" alt="Rate Limiting" />
 
-### Deduplication Prevention
-*Automatic filtering of identical messages sent within the 60-second window.*
-<img src="screenshots/img09.png" width="95%" alt="Deduplication Error" />
-
-### System Performance Metrics
-*Monitoring message throughput and WebSocket connection latency.*
-<img src="screenshots/img10.png" width="95%" alt="System Metrics" />
-
-### Responsive Mobile View
-*Fully optimized interface for both Admin and User portals on mobile devices.*
-<img src="screenshots/img11.png" width="95%" alt="Mobile View" />
-
-### End-to-End Workflow
-*A complete view of the notification pipeline from Admin trigger to User receipt.*
-<img src="screenshots/img12.png" width="95%" alt="Full System Integration" />
+### Deduplication
+<img src="screenshots/updated/img09.png" width="100%" alt="Deduplication" />
 
 </div>
-
-
-
-
-

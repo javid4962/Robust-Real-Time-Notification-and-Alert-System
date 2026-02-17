@@ -8,6 +8,7 @@
 /home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/model/NotificationDTO.java
 /home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/model/User.java
 /home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/service/NotificationService.java
+/home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/service/NotificationBatcher.java
 /home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/repository/UserRepository.java
 /home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/controller/GlobalExceptionHandler.java
 /home/javid/Desktop/Documents/Datavalley/MonthlyReports/Projects/java-ai/RealTimeNotificationMS/src/main/java/com/datavalley/notification/model/Notification.java

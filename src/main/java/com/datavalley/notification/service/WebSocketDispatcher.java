@@ -21,4 +21,13 @@ public class WebSocketDispatcher {
             messagingTemplate.convertAndSend("/topic/public", notification);
         }
     }
+
+    public void dispatchBatch(java.util.List<Notification> notifications, String username) {
+        if (username != null) {
+            String target = "/topic/user/" + username;
+            messagingTemplate.convertAndSend(target, notifications);
+        } else {
+            messagingTemplate.convertAndSend("/topic/public", notifications);
+        }
+    }
 }
