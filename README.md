@@ -118,16 +118,16 @@ graph TD
 ### Architecture Diagram
 <img src="screenshots/updated/img10.png" width="100%" alt="Architecture Diagram" />
 
-### Sequence Diagram
+
 <img src="screenshots/updated/img11.png" width="100%" alt="Sequence Diagram" />
 
-### Class Diagram
+
 <img src="screenshots/updated/img12.png" width="100%" alt="Class Diagram" />
 
-### Entity Relationship (ER) Diagram
-<img src="screenshots/updated/img13.png" width="100%" alt="ER Diagram" />
 
-### Deployment / Component Diagram
+<!-- <img src="screenshots/updated/img13.png" width="100%" alt="ER Diagram" /> -->
+
+
 <img src="screenshots/updated/img14.png" width="100%" alt="Deployment Diagram" />
 
 </div>
@@ -220,28 +220,28 @@ Access at **http://localhost:8082/bulk_sender.html**.
 ### Admin Dashboard Overview
 <img src="screenshots/updated/img01.png" width="100%" alt="Admin Dashboard Overview" />
 
-### User Management
+
 <img src="screenshots/updated/img02.png" width="100%" alt="User Creation" />
 
-### Sending Broadcasts
+
 <img src="screenshots/updated/img03.png" width="100%" alt="Broadcast Notification" />
 
 ### Targeted Messaging
 <img src="screenshots/updated/img04.png" width="100%" alt="Targeted Notification" />
 
-### User Portal Login
+### User Management
 <img src="screenshots/updated/img05.png" width="100%" alt="User Login" />
 
-### Real-time Notification Feed
+### User Management
 <img src="screenshots/updated/img06.png" width="100%" alt="User Portal Feed" />
 
-### Visual Alerts
+### Bulk Notification Dashboard
 <img src="screenshots/updated/img07.png" width="100%" alt="Visual Alerts" />
 
 ### Rate Limiting
 <img src="screenshots/updated/img08.png" width="100%" alt="Rate Limiting" />
 
-### Deduplication
+### Bulk Notification Handling
 <img src="screenshots/updated/img09.png" width="100%" alt="Deduplication" />
 
 </div>
