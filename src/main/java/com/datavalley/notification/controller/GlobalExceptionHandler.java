@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.Map;
@@ -17,11 +18,18 @@ public class GlobalExceptionHandler {
                 .body(Collections.singletonMap("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {
+        String message = ex.getReason() != null ? ex.getReason() : "Request failed.";
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(Collections.singletonMap("error", message));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         // Assume other RuntimeExceptions are Rate Limits or unexpected errors
         // Ideally, create a specific RateLimitException too.
-        if (ex.getMessage().contains("Rate limit")) {
+        if (ex.getMessage() != null && ex.getMessage().contains("Rate limit")) {
              return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(Collections.singletonMap("error", ex.getMessage()));
         }

@@ -3,79 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Notification Sender | Stress Test</title>
+    <title>Multi-Target Notification Sender</title>
     <link rel="stylesheet" href="style.css">
     <style>
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: flex-start;
+            padding: 40px 20px;
             color: #fff;
             font-family: 'Inter', sans-serif;
         }
 
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 1100px;
             backdrop-filter: blur(16px) saturate(180%);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
             background-color: rgba(17, 25, 40, 0.75);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.125);
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: 300;
-            letter-spacing: 1px;
+            margin: 0;
+            font-weight: 400;
+            letter-spacing: 0.5px;
             color: #00d2ff;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .subtext {
+            color: #9aa3b2;
+            margin-bottom: 18px;
+            font-size: 0.92em;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #aaa;
-            font-size: 0.9em;
+        .secondary-btn {
+            width: auto;
+            margin: 0;
+            padding: 10px 14px;
+            font-size: 0.85em;
+            font-weight: 600;
+            background: linear-gradient(90deg, #2f80ed 0%, #1f5ec0 100%);
+            border-radius: 8px;
         }
 
-        input, select {
+        .targets-wrap {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .targets-head,
+        .target-row {
+            display: grid;
+            grid-template-columns: 1.1fr 2fr 1.3fr 1fr 0.75fr 0.6fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .targets-head {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #8e9ab2;
+        }
+
+        .target-row {
+            padding: 10px 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .target-row input,
+        .target-row select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px;
             color: #fff;
-            font-size: 1em;
+            font-size: 0.95em;
             outline: none;
-            transition: all 0.3s;
         }
 
-        input:focus, select:focus {
+        .target-row input:focus,
+        .target-row select:focus {
             border-color: #00d2ff;
             background: rgba(255, 255, 255, 0.1);
         }
 
-        button {
-            width: 100%;
-            padding: 15px;
+        .remove-btn {
+            width: auto;
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 0.75em;
+            font-weight: 700;
             background: linear-gradient(90deg, #ff416c 0%, #ff4b2b 100%);
+            border-radius: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .send-btn {
+            flex: 1;
+            min-width: 240px;
+            margin: 0;
+            padding: 14px;
+            font-size: 1em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+            border-radius: 8px;
+        }
+
+        .clear-btn {
+            width: auto;
+            margin: 0;
+            padding: 14px;
+            font-size: 0.9em;
+            background: linear-gradient(90deg, #4a4a4a 0%, #313131 100%);
+            border-radius: 8px;
+        }
+
+        button {
             border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 1.1em;
-            font-weight: bold;
+            color: #fff;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 20px;
+            transition: transform 0.15s ease, opacity 0.2s ease;
         }
 
         button:active {
@@ -83,159 +155,394 @@
         }
 
         button:disabled {
-            opacity: 0.7;
+            opacity: 0.65;
             cursor: not-allowed;
         }
 
-        .progress-container {
-            margin-top: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            height: 10px;
-            overflow: hidden;
+        .status-row {
+            margin-top: 12px;
+            color: #9eb6cc;
+            font-size: 0.92em;
+        }
+
+        .summary {
+            margin-top: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
             display: none;
+            background: rgba(0, 0, 0, 0.2);
         }
 
-        .progress-bar {
-            height: 100%;
-            background: #00d2ff;
-            width: 0%;
-            transition: width 0.1s;
+        .summary-top {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
-        .status-text {
+        .summary-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 10px;
             text-align: center;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #888;
+        }
+
+        .summary-box .label {
+            display: block;
+            font-size: 0.75em;
+            color: #94a1b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-box .value {
+            display: block;
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #eaf4ff;
+            margin-top: 4px;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        .result-table th,
+        .result-table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .result-table th {
+            color: #8ea0b6;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.78em;
+            letter-spacing: 0.05em;
+        }
+
+        .result-table td {
+            color: #dde8f5;
         }
 
         .log-area {
-            margin-top: 20px;
-            background: rgba(0,0,0,0.3);
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
             padding: 10px;
-            border-radius: 6px;
             height: 150px;
             overflow-y: auto;
             font-family: monospace;
-            font-size: 0.85em;
-            display: none;
+            font-size: 0.83em;
+            color: #b7c7d8;
+        }
+
+        .log-line.error {
+            color: #ff8585;
+        }
+
+        @media (max-width: 900px) {
+            .targets-head {
+                display: none;
+            }
+
+            .target-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 12px;
+            }
+
+            .summary-top {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>🚀 Bulk Notification Sender</h2>
-        
-        <div class="form-group">
-            <label for="messageCount">Number of Messages</label>
-            <input type="number" id="messageCount" value="50" min="1" max="1000">
+        <div class="header">
+            <h2>Multi-Target Notification Sender</h2>
+            <button id="addTargetBtn" class="secondary-btn" type="button">Add Target Row</button>
         </div>
 
-        <div class="form-group">
-            <label for="messageTemplate">Message Template</label>
-            <input type="text" id="messageTemplate" value="Load Test Notification #{i}">
-            <small style="color: #666; font-size: 0.8em;">Use {i} for auto-increment number</small>
+        <div class="subtext">
+            Configure multiple targets with different messages, priorities, and message counts in one batch run.
         </div>
 
-        <div class="form-group">
-            <label for="priority">Priority</label>
-            <select id="priority">
-                <option value="NORMAL">Normal (Batched)</option>
-                <option value="CRITICAL">Critical (Instant)</option>
-                <option value="INFO">Info (Batched)</option>
-                <option value="WARNING">Warning (Instant)</option>
-            </select>
+        <div class="targets-wrap">
+            <div class="targets-head">
+                <div>Target User</div>
+                <div>Message (use {i} for sequence)</div>
+                <div>Priority Mode</div>
+                <div>Single Priority</div>
+                <div>Count</div>
+                <div>Action</div>
+            </div>
+            <div id="targetsContainer"></div>
         </div>
 
-        <div class="form-group">
-            <label for="targetUser">Target User (Optional)</label>
-            <input type="text" id="targetUser" placeholder="Leave empty for Broadcast">
+        <div class="actions">
+            <button id="sendBatchBtn" class="send-btn" type="button">Send Multi-Target Batch</button>
+            <button id="clearRowsBtn" class="clear-btn" type="button">Reset Rows</button>
         </div>
 
-        <button onclick="startAttack()" id="attackBtn">🔥 Start Flood</button>
+        <div id="statusText" class="status-row">Ready</div>
 
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar" id="progressBar"></div>
+        <div id="summaryPanel" class="summary">
+            <div class="summary-top">
+                <div class="summary-box">
+                    <span class="label">Requested</span>
+                    <span id="summaryRequested" class="value">0</span>
+                </div>
+                <div class="summary-box">
+                    <span class="label">Sent</span>
+                    <span id="summarySent" class="value">0</span>
+                </div>
+                <div class="summary-box">
+                    <span class="label">Failed</span>
+                    <span id="summaryFailed" class="value">0</span>
+                </div>
+            </div>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>Target</th>
+                        <th>Priority Strategy</th>
+                        <th>Requested</th>
+                        <th>Sent</th>
+                        <th>Failed</th>
+                        <th>Last Error</th>
+                    </tr>
+                </thead>
+                <tbody id="resultBody"></tbody>
+            </table>
         </div>
-        <div class="status-text" id="statusText">Ready</div>
 
-        <div class="log-area" id="logArea"></div>
+        <div id="logArea" class="log-area"></div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:8080/api';
+        const PRIORITIES = ['CRITICAL', 'WARNING', 'NORMAL', 'INFO'];
+        const PRIORITY_MODES = [
+            { value: 'MIXED_HIGH_FIRST', label: 'Mixed Random (High First)' },
+            { value: 'BALANCED', label: 'Balanced Round Robin' },
+            { value: 'HIGH_FOCUS', label: 'High Focus (Critical + Warning)' },
+            { value: 'NORMAL_INFO', label: 'Normal + Info' },
+            { value: 'SINGLE', label: 'Single Priority Only' }
+        ];
 
-        async function startAttack() {
-            const count = parseInt(document.getElementById('messageCount').value);
-            const template = document.getElementById('messageTemplate').value;
-            const priority = document.getElementById('priority').value;
-            const user = document.getElementById('targetUser').value;
-            
-            const btn = document.getElementById('attackBtn');
-            const progressBar = document.getElementById('progressBar');
-            const progressContainer = document.getElementById('progressContainer');
-            const statusText = document.getElementById('statusText');
-            const logArea = document.getElementById('logArea');
+        function priorityOptions(selected) {
+            return PRIORITIES.map((priority) => {
+                const active = priority === selected ? 'selected' : '';
+                return `<option value="${priority}" ${active}>${priority}</option>`;
+            }).join('');
+        }
 
-            // Reset UI
-            btn.disabled = true;
-            btn.innerText = "Sending...";
-            progressContainer.style.display = 'block';
-            logArea.style.display = 'block';
-            progressBar.style.width = '0%';
-            logArea.innerHTML = '';
+        function priorityModeOptions(selected) {
+            return PRIORITY_MODES.map((mode) => {
+                const active = mode.value === selected ? 'selected' : '';
+                return `<option value="${mode.value}" ${active}>${mode.label}</option>`;
+            }).join('');
+        }
 
-            let sent = 0;
-            let errors = 0;
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
-            log("Starting batch of " + count + " messages...");
+        function addTargetRow(prefill = {}) {
+            const row = document.createElement('div');
+            row.className = 'target-row';
+            const selectedMode = prefill.priorityMode || (prefill.priority ? 'SINGLE' : 'BALANCED');
+            const selectedSinglePriority = prefill.singlePriority || prefill.priority || 'WARNING';
 
-            for (let i = 1; i <= count; i++) {
-                const message = template.replace('{i}', i);
-                const payload = { message, priority, username: user || null };
+            row.innerHTML = `
+                <input type="text" class="target-user" placeholder="Broadcast if empty" value="${escapeHtml(prefill.username || '')}">
+                <input type="text" class="target-message" placeholder="Message template" value="${escapeHtml(prefill.message || 'Alert message {i}')}">
+                <select class="target-priority-mode">${priorityModeOptions(selectedMode)}</select>
+                <select class="target-single-priority">${priorityOptions(selectedSinglePriority)}</select>
+                <input type="number" class="target-count" min="1" max="5000" value="${prefill.count || 1}">
+                <button type="button" class="remove-btn">Remove</button>
+            `;
 
-                try {
-                    const response = await fetch(`${API_URL}/notifications/send`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+            const modeSelect = row.querySelector('.target-priority-mode');
+            const singlePrioritySelect = row.querySelector('.target-single-priority');
+            const updateSinglePriorityState = () => {
+                const isSingle = modeSelect.value === 'SINGLE';
+                singlePrioritySelect.disabled = !isSingle;
+                singlePrioritySelect.style.opacity = isSingle ? '1' : '0.6';
+                singlePrioritySelect.title = isSingle
+                    ? 'Used for SINGLE mode'
+                    : 'Disabled for this priority mode';
+            };
 
-                    if (response.ok) {
-                        sent++;
-                    } else {
-                        errors++;
-                        log(`Error sending #${i}: ${response.status}`);
-                    }
-                } catch (e) {
-                    errors++;
-                    log(`Network Error #${i}: ${e.message}`);
+            modeSelect.addEventListener('change', updateSinglePriorityState);
+            row.querySelector('.remove-btn').addEventListener('click', () => {
+                row.remove();
+                if (!document.querySelector('.target-row')) {
+                    addTargetRow();
                 }
+            });
+            updateSinglePriorityState();
 
-                // Update Progress
-                const percent = (i / count) * 100;
-                progressBar.style.width = percent + '%';
-                statusText.innerText = `Sent: ${sent} | Errors: ${errors} | Remaining: ${count - i}`;
+            document.getElementById('targetsContainer').appendChild(row);
+        }
 
-                // Scroll log
-                logArea.scrollTop = logArea.scrollHeight;
+        function resetRows() {
+            const container = document.getElementById('targetsContainer');
+            container.innerHTML = '';
+            addTargetRow({ username: '', message: 'System Alert {i}', priorityMode: 'MIXED_HIGH_FIRST', count: 12 });
+            addTargetRow({ username: '', message: 'Balanced Load Message {i}', priorityMode: 'BALANCED', count: 8 });
+            document.getElementById('summaryPanel').style.display = 'none';
+            setStatus('Rows reset. Ready.');
+        }
 
-                // Small delay to prevent complete browser freeze if number is huge
-                if(i % 10 === 0) await new Promise(r => setTimeout(r, 10));
+        function setStatus(text) {
+            document.getElementById('statusText').innerText = text;
+        }
+
+        function log(message, isError = false) {
+            const line = document.createElement('div');
+            line.className = isError ? 'log-line error' : 'log-line';
+            line.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
+            const logArea = document.getElementById('logArea');
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function collectItems() {
+            const rows = Array.from(document.querySelectorAll('.target-row'));
+            if (!rows.length) {
+                throw new Error('Add at least one target row.');
             }
 
-            log("Batch completed!");
-            btn.disabled = false;
-            btn.innerText = "🔥 Start Flood";
-            statusText.innerText = "Done. Check Admin/User Portal.";
+            return rows.map((row, index) => {
+                const username = row.querySelector('.target-user').value.trim();
+                const message = row.querySelector('.target-message').value.trim();
+                const priorityMode = row.querySelector('.target-priority-mode').value;
+                const singlePriority = row.querySelector('.target-single-priority').value;
+                const count = parseInt(row.querySelector('.target-count').value, 10);
+
+                if (!message) {
+                    throw new Error(`Message is required in row ${index + 1}.`);
+                }
+                if (!priorityMode) {
+                    throw new Error(`Priority mode is required in row ${index + 1}.`);
+                }
+                if (priorityMode === 'SINGLE' && !singlePriority) {
+                    throw new Error(`Single priority is required in row ${index + 1}.`);
+                }
+                if (!Number.isInteger(count) || count < 1 || count > 5000) {
+                    throw new Error(`Count in row ${index + 1} must be between 1 and 5000.`);
+                }
+
+                return {
+                    username: username || null,
+                    message,
+                    priorityMode,
+                    singlePriority,
+                    priority: priorityMode === 'SINGLE' ? singlePriority : null,
+                    count
+                };
+            });
         }
 
-        function log(msg) {
-            const logArea = document.getElementById('logArea');
-            logArea.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+        function setBusy(isBusy) {
+            document.getElementById('sendBatchBtn').disabled = isBusy;
+            document.getElementById('addTargetBtn').disabled = isBusy;
+            document.getElementById('clearRowsBtn').disabled = isBusy;
+            document.querySelectorAll('.remove-btn').forEach((btn) => {
+                btn.disabled = isBusy;
+            });
         }
+
+        function renderSummary(result) {
+            document.getElementById('summaryRequested').innerText = result.requested || 0;
+            document.getElementById('summarySent').innerText = result.sent || 0;
+            document.getElementById('summaryFailed').innerText = result.failed || 0;
+
+            const body = document.getElementById('resultBody');
+            body.innerHTML = '';
+
+            const itemResults = Array.isArray(result.itemResults) ? result.itemResults : [];
+            itemResults.forEach((item) => {
+                const tr = document.createElement('tr');
+                const strategy = item.priorityMode
+                    ? `${item.priorityMode}${item.priorityDetails ? ` (${item.priorityDetails})` : ''}`
+                    : (item.priorityDetails || '-');
+
+                tr.innerHTML = `
+                    <td>${escapeHtml(item.username || 'BROADCAST')}</td>
+                    <td>${escapeHtml(strategy)}</td>
+                    <td>${item.requested || 0}</td>
+                    <td>${item.sent || 0}</td>
+                    <td>${item.failed || 0}</td>
+                    <td>${escapeHtml(item.lastError || '-')}</td>
+                `;
+                body.appendChild(tr);
+            });
+
+            document.getElementById('summaryPanel').style.display = 'block';
+        }
+
+        async function startBatch() {
+            let items;
+            try {
+                items = collectItems();
+            } catch (e) {
+                setStatus(e.message);
+                log(e.message, true);
+                return;
+            }
+
+            setBusy(true);
+            setStatus(`Sending ${items.length} target groups...`);
+            log(`Starting multi-target batch with ${items.length} row(s).`);
+
+            try {
+                const response = await fetch(`${API_URL}/notifications/send/multi-target`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items })
+                });
+
+                const payload = await response.json();
+                if (!response.ok) {
+                    const errorText = payload && payload.error ? payload.error : `HTTP ${response.status}`;
+                    setStatus(`Batch failed: ${errorText}`);
+                    log(`Batch failed: ${errorText}`, true);
+                    return;
+                }
+
+                renderSummary(payload);
+                setStatus(`Completed. Sent: ${payload.sent || 0}, Failed: ${payload.failed || 0}`);
+                log(`Batch completed. Requested=${payload.requested || 0}, Sent=${payload.sent || 0}, Failed=${payload.failed || 0}`);
+            } catch (e) {
+                setStatus(`Network error: ${e.message}`);
+                log(`Network error: ${e.message}`, true);
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        document.getElementById('addTargetBtn').addEventListener('click', () => addTargetRow());
+        document.getElementById('clearRowsBtn').addEventListener('click', resetRows);
+        document.getElementById('sendBatchBtn').addEventListener('click', startBatch);
+
+        resetRows();
     </script>
 </body>
 </html>

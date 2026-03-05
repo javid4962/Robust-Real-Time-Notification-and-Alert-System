@@ -176,6 +176,349 @@ button:hover {
     color: var(--critical-color);
 }
 
+.rabbitmq-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.rabbitmq-mode-badge {
+    font-size: 0.85em;
+    border-radius: 999px;
+    padding: 6px 12px;
+    border: 1px solid transparent;
+}
+
+.rabbitmq-mode-badge.enabled {
+    color: #8bf7c0;
+    background: rgba(30, 81, 58, 0.45);
+    border-color: rgba(139, 247, 192, 0.35);
+}
+
+.rabbitmq-mode-badge.disabled {
+    color: #ffb0b0;
+    background: rgba(112, 32, 32, 0.45);
+    border-color: rgba(255, 176, 176, 0.35);
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #444;
+    transition: 0.2s ease;
+    border-radius: 999px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    top: 3px;
+    background-color: #fff;
+    transition: 0.2s ease;
+    border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+    background-color: #00b4d8;
+}
+
+.switch input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+.switch input:disabled + .slider {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.system-compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.system-compare-block {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.system-compare-block h4 {
+    margin: 0 0 10px;
+    font-size: 0.95em;
+    color: #fff;
+}
+
+.system-compare-block div {
+    font-size: 0.84em;
+    color: #d1d1d1;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.system-compare-block div:last-child {
+    margin-bottom: 0;
+}
+
+.system-compare-block.present {
+    border-color: rgba(255, 176, 176, 0.3);
+    background: rgba(112, 32, 32, 0.18);
+}
+
+.system-compare-block.proposed {
+    border-color: rgba(139, 247, 192, 0.3);
+    background: rgba(30, 81, 58, 0.18);
+}
+
+.runtime-summary {
+    margin-top: 12px;
+    font-size: 0.9em;
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.runtime-summary.queue {
+    color: #8bf7c0;
+    background: rgba(30, 81, 58, 0.35);
+    border-color: rgba(139, 247, 192, 0.35);
+}
+
+.runtime-summary.direct {
+    color: #7fdfff;
+    background: rgba(0, 76, 114, 0.35);
+    border-color: rgba(127, 223, 255, 0.35);
+}
+
+.runtime-summary.error {
+    color: #ffb0b0;
+    background: rgba(112, 32, 32, 0.35);
+    border-color: rgba(255, 176, 176, 0.35);
+}
+
+.practical-diff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.practical-diff-block {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.practical-diff-block h4 {
+    margin: 0 0 10px;
+    font-size: 0.9em;
+    color: #fff;
+}
+
+.practical-diff-block.present {
+    border-color: rgba(255, 176, 176, 0.3);
+    background: rgba(112, 32, 32, 0.18);
+}
+
+.practical-diff-block.proposed {
+    border-color: rgba(139, 247, 192, 0.3);
+    background: rgba(30, 81, 58, 0.18);
+}
+
+.metric-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.85em;
+    color: #d8d8d8;
+    margin-bottom: 6px;
+}
+
+.metric-line strong {
+    color: #fff;
+}
+
+.metric-note {
+    font-size: 0.8em;
+    color: #bbb;
+}
+
+.runtime-metrics-row {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.runtime-metric-item {
+    font-size: 0.82em;
+    border-radius: 8px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #d4d4d4;
+}
+
+.runtime-metric-item strong {
+    color: #fff;
+}
+
+.graphs-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.graph-panel {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.graph-panel h4 {
+    margin: 0 0 8px;
+    font-size: 0.85em;
+    color: #ddd;
+}
+
+.graph-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.graph-head h4 {
+    margin: 0;
+}
+
+.graph-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.graph-controls select {
+    width: auto;
+    min-width: 98px;
+    padding: 6px 8px;
+    font-size: 0.76em;
+    border-radius: 6px;
+}
+
+.graph-panel canvas {
+    width: 100% !important;
+    height: 200px !important;
+}
+
+.practical-event-feed {
+    max-height: 190px;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.18);
+    padding: 8px;
+    font-size: 0.8em;
+    color: #bbb;
+}
+
+.practical-event-item {
+    display: grid;
+    grid-template-columns: 150px 1fr 90px 90px;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 6px;
+}
+
+.practical-event-item:last-child {
+    margin-bottom: 0;
+}
+
+.path-badge {
+    display: inline-block;
+    font-size: 0.74em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.path-badge.queue {
+    color: #8bf7c0;
+    background: rgba(30, 81, 58, 0.4);
+    border-color: rgba(139, 247, 192, 0.35);
+}
+
+.path-badge.direct {
+    color: #7fdfff;
+    background: rgba(0, 76, 114, 0.4);
+    border-color: rgba(127, 223, 255, 0.35);
+}
+
+.path-badge.fallback {
+    color: #ffd08a;
+    background: rgba(102, 70, 0, 0.4);
+    border-color: rgba(255, 208, 138, 0.35);
+}
+
+.path-badge.unknown {
+    color: #ccc;
+    background: rgba(95, 95, 95, 0.4);
+    border-color: rgba(201, 201, 201, 0.35);
+}
+
+@media (max-width: 900px) {
+    .system-compare-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .practical-diff-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .runtime-metrics-row {
+        grid-template-columns: 1fr;
+    }
+
+    .graphs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .graph-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .practical-event-item {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}
+
 @keyframes slideIn {
     from { transform: translateX(30px); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }

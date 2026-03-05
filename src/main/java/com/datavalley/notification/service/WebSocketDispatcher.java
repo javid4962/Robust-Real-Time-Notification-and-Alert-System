@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class WebSocketDispatcher {
 
+    private static final String ADMIN_TRAFFIC_TOPIC = "/topic/admin/traffic";
+
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
@@ -20,6 +22,8 @@ public class WebSocketDispatcher {
             System.out.println("WebSocketDispatcher: Broadcasting message to /topic/public");
             messagingTemplate.convertAndSend("/topic/public", notification);
         }
+        // Mirror all traffic for admin dashboard live feed updates.
+        messagingTemplate.convertAndSend(ADMIN_TRAFFIC_TOPIC, notification);
     }
 
     public void dispatchBatch(java.util.List<Notification> notifications, String username) {
@@ -29,5 +33,7 @@ public class WebSocketDispatcher {
         } else {
             messagingTemplate.convertAndSend("/topic/public", notifications);
         }
+        // Mirror batch traffic for admin dashboard live feed updates.
+        messagingTemplate.convertAndSend(ADMIN_TRAFFIC_TOPIC, notifications);
     }
 }

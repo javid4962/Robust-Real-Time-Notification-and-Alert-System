@@ -33,6 +33,15 @@ public class Notification {
 
     private LocalDateTime timestamp;
 
+    private LocalDateTime processedAt;
+
+    private Long deliveryLatencyMs;
+
+    @Column(length = 32)
+    private String deliveryPath;
+
+    private Integer deliveryAttempts;
+
     public enum Priority {
         CRITICAL,
         WARNING,
@@ -42,6 +51,7 @@ public class Notification {
 
     public enum NotificationStatus {
         PENDING,
+        PROCESSING,
         SENT,
         FAILED
     }

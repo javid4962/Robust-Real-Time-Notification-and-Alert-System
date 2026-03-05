@@ -36,28 +36,240 @@
             margin-top: 10px;
             display: none;
         }
+        .priority-components {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .priority-component {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            min-height: 86px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .priority-component .label {
+            font-size: 0.72em;
+            letter-spacing: 0.08em;
+            color: #9aa0a6;
+            text-transform: uppercase;
+        }
+        .priority-component .count {
+            font-size: 1.45em;
+            font-weight: 700;
+            line-height: 1.1;
+            color: #eaeaea;
+        }
+        .priority-component .meta {
+            font-size: 0.72em;
+            color: #8e939a;
+        }
+        .priority-component.CRITICAL {
+            border-color: rgba(255, 82, 82, 0.45);
+            background: rgba(255, 82, 82, 0.08);
+        }
+        .priority-component.WARNING {
+            border-color: rgba(255, 183, 77, 0.45);
+            background: rgba(255, 183, 77, 0.08);
+        }
+        .priority-component.NORMAL {
+            border-color: rgba(100, 181, 246, 0.45);
+            background: rgba(100, 181, 246, 0.08);
+        }
+        .priority-component.INFO {
+            border-color: rgba(105, 240, 174, 0.45);
+            background: rgba(105, 240, 174, 0.08);
+        }
+        .priority-feed-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .priority-feed-panel {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+        }
+        .priority-feed-panel.CRITICAL {
+            border-color: rgba(255, 82, 82, 0.4);
+        }
+        .priority-feed-panel.WARNING {
+            border-color: rgba(255, 183, 77, 0.4);
+        }
+        .priority-feed-panel.NORMAL {
+            border-color: rgba(100, 181, 246, 0.4);
+        }
+        .priority-feed-panel.INFO {
+            border-color: rgba(105, 240, 174, 0.4);
+        }
+        .priority-feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.9em;
+            color: #d3d8de;
+        }
+        .priority-feed-header strong {
+            color: #ffffff;
+        }
+        .priority-feed-list {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .priority-feed-item {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .priority-feed-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8em;
+        }
+        .priority-feed-item-msg {
+            margin-top: 6px;
+            font-size: 0.9em;
+            line-height: 1.35;
+            color: #e7eaee;
+            word-break: break-word;
+        }
+        .priority-feed-item-meta {
+            margin-top: 6px;
+            font-size: 0.75em;
+            color: #90a4ae;
+        }
+        .priority-feed-empty {
+            padding: 10px;
+            color: #7f8b96;
+            font-size: 0.85em;
+            text-align: center;
+        }
+        @media (max-width: 760px) {
+            .priority-components {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .priority-feed-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="portal-card" id="login-section">
-        <h2 style="color: #64b5f6; text-align: center;">🔔 User Access Portal</h2>
-        <p style="color: #aaa; text-align: center;">Enter your username to view your personal alert stream.</p>
-        
-        <input type="text" id="username-input" placeholder="e.g. javid" style="margin-top: 20px; font-size: 1.1em; text-align: center;">
-        <div id="error-msg" class="error-msg">User not found. Please check your username.</div>
-        <button onclick="login()" style="margin-top: 15px; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white;">Access Dashboard</button>
+        <h2 style="color: #64b5f6; text-align: center;">User Access Portal</h2>
+        <p style="color: #aaa; text-align: center;">Register using username, email, and password. Sign in after admin approval.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
+            <button id="signin-tab" type="button" style="margin-top: 0; background: rgba(58,123,213,0.6); color: #fff;">Sign In</button>
+            <button id="register-tab" type="button" style="margin-top: 0; background: rgba(39,174,96,0.45); color: #fff;">Register</button>
+        </div>
+
+        <form id="signin-form" style="margin-top: 15px;">
+            <input type="text" id="identifier-input" placeholder="Username or email" autocomplete="username">
+            <input type="password" id="signin-password" placeholder="Password" autocomplete="current-password" style="margin-top: 10px;">
+            <button type="submit" style="margin-top: 15px; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white;">Sign In</button>
+        </form>
+
+        <form id="register-form" style="display: none; margin-top: 15px;">
+            <input type="text" id="register-username" placeholder="Username" autocomplete="username">
+            <input type="email" id="register-email" placeholder="Email" autocomplete="email" style="margin-top: 10px;">
+            <input type="password" id="register-password" placeholder="Password (min 6 chars)" autocomplete="new-password" style="margin-top: 10px;">
+            <button type="submit" style="margin-top: 15px; background: linear-gradient(90deg, #27ae60 0%, #1f8b4d 100%); color: white;">Register</button>
+        </form>
+
+        <div id="error-msg" class="error-msg"></div>
     </div>
 
-    <div class="portal-card" id="dashboard-section" style="display: none; max-width: 800px;">
+    <div class="portal-card" id="dashboard-section" style="display: none; max-width: 1100px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="margin:0; font-size: 1.5em;">🔔 Live Alerts</h2>
+            <h2 style="margin:0; font-size: 1.5em;">Live Alerts</h2>
             <div style="text-align: right;">
                 <div id="user-badge" style="color: #64b5f6; font-weight: bold; font-size: 1.2em;">@username</div>
                 <div id="status-indicator" class="status-disconnected" style="font-size: 0.8em;">● Connecting...</div>
             </div>
         </div>
 
+        <div class="priority-components">
+            <div class="priority-component CRITICAL">
+                <div class="label">Critical</div>
+                <div id="priority-critical-count" class="count">0</div>
+                <div id="priority-critical-meta" class="meta">No alerts yet</div>
+            </div>
+            <div class="priority-component WARNING">
+                <div class="label">Warning</div>
+                <div id="priority-warning-count" class="count">0</div>
+                <div id="priority-warning-meta" class="meta">No alerts yet</div>
+            </div>
+            <div class="priority-component NORMAL">
+                <div class="label">Normal</div>
+                <div id="priority-normal-count" class="count">0</div>
+                <div id="priority-normal-meta" class="meta">No alerts yet</div>
+            </div>
+            <div class="priority-component INFO">
+                <div class="label">Info</div>
+                <div id="priority-info-count" class="count">0</div>
+                <div id="priority-info-meta" class="meta">No alerts yet</div>
+            </div>
+        </div>
+
+        <div class="priority-feed-grid">
+            <div class="priority-feed-panel CRITICAL">
+                <div class="priority-feed-header">
+                    <span>Critical Stream</span>
+                    <strong id="priority-critical-stream-count">0</strong>
+                </div>
+                <div id="priority-critical-feed" class="priority-feed-list">
+                    <div class="priority-feed-empty">No critical alerts yet.</div>
+                </div>
+            </div>
+            <div class="priority-feed-panel WARNING">
+                <div class="priority-feed-header">
+                    <span>Warning Stream</span>
+                    <strong id="priority-warning-stream-count">0</strong>
+                </div>
+                <div id="priority-warning-feed" class="priority-feed-list">
+                    <div class="priority-feed-empty">No warning alerts yet.</div>
+                </div>
+            </div>
+            <div class="priority-feed-panel NORMAL">
+                <div class="priority-feed-header">
+                    <span>Normal Stream</span>
+                    <strong id="priority-normal-stream-count">0</strong>
+                </div>
+                <div id="priority-normal-feed" class="priority-feed-list">
+                    <div class="priority-feed-empty">No normal alerts yet.</div>
+                </div>
+            </div>
+            <div class="priority-feed-panel INFO">
+                <div class="priority-feed-header">
+                    <span>Info Stream</span>
+                    <strong id="priority-info-stream-count">0</strong>
+                </div>
+                <div id="priority-info-feed" class="priority-feed-list">
+                    <div class="priority-feed-empty">No info alerts yet.</div>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin: 0 0 10px; font-size: 1.1em; color: #d6dbe0;">All Notifications</h3>
         <div id="notification-feed" class="notification-feed" style="max-height: 70vh;">
             <div style="text-align: center; color: #666; padding: 40px;">Loading your alerts...</div>
         </div>
@@ -69,81 +281,155 @@
         const API_URL = 'http://localhost:8080/api';
         let stompClient = null;
         let currentUser = null;
+        let authToken = null;
+        let dashboardNotifications = [];
+        const priorityKeys = ['CRITICAL', 'WARNING', 'NORMAL', 'INFO'];
+        const priorityOrder = {
+            CRITICAL: 4,
+            WARNING: 3,
+            NORMAL: 2,
+            INFO: 1
+        };
 
-        async function login(savedUsername = null) {
-            const usernameInput = document.getElementById('username-input');
-            const username = savedUsername || usernameInput.value.trim();
-            
-            if (!username) {
-                showError('Please enter a username');
+        function getAuthHeaders() {
+            return authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
+        }
+
+        function setAuthMode(mode) {
+            const isSignIn = mode === 'signin';
+            document.getElementById('signin-form').style.display = isSignIn ? 'block' : 'none';
+            document.getElementById('register-form').style.display = isSignIn ? 'none' : 'block';
+            document.getElementById('signin-tab').style.opacity = isSignIn ? '1' : '0.65';
+            document.getElementById('register-tab').style.opacity = isSignIn ? '0.65' : '1';
+            hideAuthMessage();
+        }
+
+        function openDashboard() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+            document.getElementById('user-badge').innerText = '@' + currentUser;
+        }
+
+        function hideAuthMessage() {
+            const errorDiv = document.getElementById('error-msg');
+            errorDiv.style.display = 'none';
+        }
+
+        function showAuthMessage(msg, isError = true) {
+            const errorDiv = document.getElementById('error-msg');
+            errorDiv.innerText = msg;
+            errorDiv.style.color = isError ? '#ff5252' : '#69f0ae';
+            errorDiv.style.display = 'block';
+        }
+
+        async function signIn(event) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            const identifier = document.getElementById('identifier-input').value.trim();
+            const password = document.getElementById('signin-password').value.trim();
+
+            if (!identifier || !password) {
+                showAuthMessage('Please enter username/email and password.');
                 return;
             }
-            
-            // Validate user exists
+
             try {
-                const response = await fetch(`${API_URL}/users`);
-                const users = await response.json();
-                const userExists = users.some(u => u.username === username);
-                
-                if (!userExists) {
-                    if (!savedUsername) showError('User not found. Please register with admin first.');
-                    else logout(); // Invalid saved session
+                const response = await fetch(`${API_URL}/auth/signin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+
+                const payload = await response.json();
+                if (!response.ok) {
+                    showAuthMessage(payload.error || 'Sign in failed.');
                     return;
                 }
-                
-                currentUser = username;
-                localStorage.setItem('notification_user', currentUser); // Save session
 
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('dashboard-section').style.display = 'block';
-                document.getElementById('user-badge').innerText = '@' + currentUser;
-                
-                // Load history first
+                authToken = payload.token;
+                currentUser = payload.user.username;
+                localStorage.setItem('notification_auth_token', authToken);
+                localStorage.setItem('notification_user', currentUser);
+
+                openDashboard();
                 await loadUserHistory();
-                
-                // Then connect to WebSocket for real-time
                 connect();
-                
             } catch (err) {
-                showError('Connection error. Please try again.');
+                showAuthMessage('Connection error. Please try again.');
                 console.error(err);
             }
         }
 
-        function showError(msg) {
-            const errorDiv = document.getElementById('error-msg');
-            errorDiv.innerText = msg;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 3000);
+        async function registerUser(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value.trim();
+
+            if (!username || !email || !password) {
+                showAuthMessage('Username, email and password are required.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const payload = await response.json();
+                if (!response.ok) {
+                    showAuthMessage(payload.error || 'Registration failed.');
+                    return;
+                }
+
+                showAuthMessage('Registered successfully. Wait for admin approval before sign in.', false);
+                setAuthMode('signin');
+                document.getElementById('identifier-input').value = username;
+                document.getElementById('signin-password').value = '';
+                document.getElementById('register-form').reset();
+            } catch (err) {
+                showAuthMessage('Connection error. Please try again.');
+                console.error(err);
+            }
         }
 
-        function logout() {
-            if(stompClient) stompClient.disconnect();
-            localStorage.removeItem('notification_user');
-            location.reload();
+        async function logout() {
+            try {
+                if (authToken) {
+                    await fetch(`${API_URL}/auth/signout`, {
+                        method: 'POST',
+                        headers: getAuthHeaders()
+                    });
+                }
+            } catch (err) {
+                console.error('Sign out request failed', err);
+            } finally {
+                if (stompClient) {
+                    stompClient.disconnect();
+                }
+                localStorage.removeItem('notification_user');
+                localStorage.removeItem('notification_auth_token');
+                location.reload();
+            }
         }
 
         async function loadUserHistory() {
             try {
-                const response = await fetch(`${API_URL}/notifications/user/${currentUser}`);
+                const response = await fetch(`${API_URL}/notifications/user/me`, {
+                    headers: getAuthHeaders()
+                });
+
                 if (response.ok) {
                     const notifications = await response.json();
-                    const feed = document.getElementById('notification-feed');
-                    feed.innerHTML = '';
-                    
-                    if (notifications.length === 0) {
-                        feed.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No alerts yet</div>';
-                        return;
-                    }
-                    
-                    notifications.forEach(notif => {
-                        displayNotification(notif);
-                    });
-                } else if (response.status === 404) {
-                    showError('User not found');
-                    logout();
+                    dashboardNotifications = Array.isArray(notifications) ? notifications.slice() : [];
+                    renderNotificationFeed();
+                } else if (response.status === 401 || response.status === 403) {
+                    await logout();
                 }
             } catch (err) {
                 console.error('Failed to load history', err);
@@ -158,17 +444,13 @@
             stompClient.connect({}, function (frame) {
                 document.getElementById('status-indicator').innerText = '● Live System Connected';
                 document.getElementById('status-indicator').className = 'status-connected';
-                
-                // Subscribe to public broadcasts
+
                 stompClient.subscribe('/topic/public', function (notif) {
-                    const notification = JSON.parse(notif.body);
-                    displayNotification(notification, true); // true = prepend (new)
+                    handleRealtimePayload(notif.body);
                 });
-                
-                // Subscribe to user-specific
+
                 stompClient.subscribe('/topic/user/' + currentUser, function (notif) {
-                    const notification = JSON.parse(notif.body);
-                    displayNotification(notification, true);
+                    handleRealtimePayload(notif.body);
                 });
 
             }, function(error) {
@@ -178,47 +460,204 @@
             });
         }
 
-        function displayNotification(notification, prepend = false) {
-            const feed = document.getElementById('notification-feed');
-            
-            // Remove "no alerts" message if exists
-            if(feed.innerText.includes("No alerts yet") || feed.innerText.includes("Loading")) {
-                feed.innerHTML = '';
-            }
-
-            const div = document.createElement('div');
-            div.className = `notification-item ${notification.priority}`;
-            
-            const time = new Date(notification.timestamp).toLocaleTimeString();
-            const isTargeted = notification.recipient && notification.recipient.username === currentUser;
-            
-            div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div style="flex: 1;">
-                        <div>
-                            <span class="badge" style="margin-right: 8px;">${notification.priority}</span>
-                            ${isTargeted ? '<span style="color: #64b5f6; font-size: 0.85em;">👤 Personal</span>' : '<span style="color: #888; font-size: 0.85em;">📢 Broadcast</span>'}
-                        </div>
-                        <div style="margin-top: 8px; font-size: 1.05em; line-height: 1.4;">${notification.message}</div>
-                    </div>
-                    <div class="timestamp">${time}</div>
-                </div>
-            `;
-            
-            if (prepend) {
-                feed.prepend(div);
-                // Add animation
-                div.style.animation = 'slideIn 0.4s ease-out';
+        function handleRealtimePayload(payloadBody) {
+            const payload = JSON.parse(payloadBody);
+            if (Array.isArray(payload)) {
+                payload.forEach(notification => upsertNotification(notification));
             } else {
-                feed.appendChild(div);
+                upsertNotification(payload);
+            }
+            renderNotificationFeed();
+        }
+
+        function upsertNotification(notification) {
+            if (!notification) return;
+            const existingIndex = dashboardNotifications.findIndex(item => item.id === notification.id);
+            if (existingIndex >= 0) {
+                dashboardNotifications[existingIndex] = notification;
+            } else {
+                dashboardNotifications.push(notification);
             }
         }
-        // Check for saved session on load
-        window.onload = function() {
-            const savedUser = localStorage.getItem('notification_user');
-            if (savedUser) {
-                login(savedUser);
+
+        function getPriorityRank(priority) {
+            return priorityOrder[priority] || 0;
+        }
+
+        function getNotificationTime(notification) {
+            return new Date(notification.timestamp).getTime() || 0;
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function sortNotifications(notifications) {
+            notifications.sort((a, b) => {
+                const priorityDiff = getPriorityRank(b.priority) - getPriorityRank(a.priority);
+                if (priorityDiff !== 0) return priorityDiff;
+
+                const timeDiff = getNotificationTime(b) - getNotificationTime(a);
+                if (timeDiff !== 0) return timeDiff;
+
+                return (b.id || 0) - (a.id || 0);
+            });
+        }
+
+        function renderPriorityComponents(notifications) {
+            const summary = {
+                CRITICAL: { count: 0, latest: null },
+                WARNING: { count: 0, latest: null },
+                NORMAL: { count: 0, latest: null },
+                INFO: { count: 0, latest: null }
+            };
+
+            notifications.forEach(notification => {
+                const priority = notification && notification.priority;
+                if (!summary[priority]) return;
+
+                summary[priority].count += 1;
+                const time = getNotificationTime(notification);
+                if (!summary[priority].latest || time > summary[priority].latest) {
+                    summary[priority].latest = time;
+                }
+            });
+
+            priorityKeys.forEach(priority => {
+                const countEl = document.getElementById(`priority-${priority.toLowerCase()}-count`);
+                const metaEl = document.getElementById(`priority-${priority.toLowerCase()}-meta`);
+                if (countEl) countEl.innerText = summary[priority].count;
+                if (metaEl) {
+                    metaEl.innerText = summary[priority].latest
+                        ? `Last: ${new Date(summary[priority].latest).toLocaleTimeString()}`
+                        : 'No alerts yet';
+                }
+            });
+        }
+
+        function renderSeparatedPriorityFeeds(notifications) {
+            priorityKeys.forEach(priority => {
+                const feed = document.getElementById(`priority-${priority.toLowerCase()}-feed`);
+                const streamCount = document.getElementById(`priority-${priority.toLowerCase()}-stream-count`);
+                if (!feed || !streamCount) return;
+
+                const filtered = notifications
+                    .filter(notification => notification && notification.priority === priority)
+                    .sort((a, b) => {
+                        const timeDiff = getNotificationTime(b) - getNotificationTime(a);
+                        if (timeDiff !== 0) return timeDiff;
+                        return (b.id || 0) - (a.id || 0);
+                    });
+
+                streamCount.innerText = filtered.length;
+                feed.innerHTML = '';
+
+                if (!filtered.length) {
+                    feed.innerHTML = `<div class="priority-feed-empty">No ${priority.toLowerCase()} alerts yet.</div>`;
+                    return;
+                }
+
+                filtered.forEach(notification => {
+                    const div = document.createElement('div');
+                    div.className = `priority-feed-item ${priority}`;
+                    const time = new Date(notification.timestamp).toLocaleTimeString();
+                    const isTargeted = notification.recipient && notification.recipient.username === currentUser;
+                    div.innerHTML = `
+                        <div class="priority-feed-item-top">
+                            <span class="badge">${escapeHtml(notification.priority)}</span>
+                            <span class="timestamp">${escapeHtml(time)}</span>
+                        </div>
+                        <div class="priority-feed-item-msg">${escapeHtml(notification.message)}</div>
+                        <div class="priority-feed-item-meta">${isTargeted ? 'Personal' : 'Broadcast'}</div>
+                    `;
+                    feed.appendChild(div);
+                });
+            });
+        }
+
+        function renderNotificationFeed() {
+            const feed = document.getElementById('notification-feed');
+            if (!feed) return;
+
+            renderPriorityComponents(dashboardNotifications);
+            renderSeparatedPriorityFeeds(dashboardNotifications);
+
+            feed.innerHTML = '';
+            if (!dashboardNotifications.length) {
+                feed.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No alerts yet</div>';
+                return;
             }
+
+            sortNotifications(dashboardNotifications);
+
+            dashboardNotifications.forEach(notification => {
+                const div = document.createElement('div');
+                div.className = `notification-item ${notification.priority}`;
+
+                const time = new Date(notification.timestamp).toLocaleTimeString();
+                const isTargeted = notification.recipient && notification.recipient.username === currentUser;
+
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <div>
+                                <span class="badge" style="margin-right: 8px;">${escapeHtml(notification.priority)}</span>
+                                ${isTargeted ? '<span style="color: #64b5f6; font-size: 0.85em;">Personal</span>' : '<span style="color: #888; font-size: 0.85em;">Broadcast</span>'}
+                            </div>
+                            <div style="margin-top: 8px; font-size: 1.05em; line-height: 1.4;">${escapeHtml(notification.message)}</div>
+                        </div>
+                        <div class="timestamp">${escapeHtml(time)}</div>
+                    </div>
+                `;
+
+                feed.appendChild(div);
+            });
+        }
+
+        async function restoreSessionIfAvailable() {
+            const savedToken = localStorage.getItem('notification_auth_token');
+            if (!savedToken) {
+                return;
+            }
+
+            authToken = savedToken;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem('notification_auth_token');
+                    localStorage.removeItem('notification_user');
+                    authToken = null;
+                    return;
+                }
+
+                const user = await response.json();
+                currentUser = user.username;
+                localStorage.setItem('notification_user', currentUser);
+                openDashboard();
+                await loadUserHistory();
+                connect();
+            } catch (err) {
+                console.error('Failed to restore session', err);
+            }
+        }
+
+        document.getElementById('signin-tab').addEventListener('click', () => setAuthMode('signin'));
+        document.getElementById('register-tab').addEventListener('click', () => setAuthMode('register'));
+        document.getElementById('signin-form').addEventListener('submit', signIn);
+        document.getElementById('register-form').addEventListener('submit', registerUser);
+
+        window.onload = function() {
+            setAuthMode('signin');
+            restoreSessionIfAvailable();
         };
     </script>
 </body>

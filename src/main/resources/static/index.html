@@ -10,7 +10,6 @@
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
     <nav style="width: 100%; background: #1a1a1a; padding: 15px 40px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333;">
         <div style="display: flex; align-items: center; gap: 15px;">
             <div style="font-size: 1.5em; font-weight: bold; background: linear-gradient(45deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
@@ -23,51 +22,70 @@
         </div>
     </nav>
 
-    <!-- Main Dashboard -->
     <div class="container" style="margin-top: 30px; padding: 0 40px; display: grid; grid-template-columns: 350px 1fr; gap: 30px; width: 100%; max-width: 1600px;">
-        
-        <!-- Left Sidebar: Controls -->
+
         <div style="display: flex; flex-direction: column; gap: 20px;">
-            
-            <!-- Send Card -->
+
             <div class="card" style="border-top: 4px solid #00d2ff;">
-                <h3 style="margin-top: 0; color: #fff;">📢 Dispatch</h3>
+                <h3 style="margin-top: 0; color: #fff;">Dispatch</h3>
                 <form id="notification-form">
                     <label>Message</label>
                     <textarea id="msg-content" rows="4" required placeholder="Type alert message..." style="margin-bottom: 15px;"></textarea>
-                    
+
                     <label>Priority</label>
                     <select id="msg-priority" style="margin-bottom: 15px;">
-                        <option value="INFO">ℹ️ Info</option>
-                        <option value="NORMAL">✅ Normal</option>
-                        <option value="WARNING">⚠️ Warning</option>
-                        <option value="CRITICAL">🔥 CRITICAL</option>
+                        <option value="INFO">Info</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="WARNING">Warning</option>
+                        <option value="CRITICAL">CRITICAL</option>
                     </select>
 
                     <label>Target User (Optional)</label>
                     <input type="text" id="msg-recipient" placeholder="username" style="margin-bottom: 20px;">
-                    
+
                     <button type="submit">Broadcast</button>
+                    <a href="bulk_sender.html" style="display: inline-block; margin-top: 10px; color: #00d2ff; font-size: 0.85em; text-decoration: none;">
+                        Open multi-target sender
+                    </a>
                 </form>
             </div>
 
-            <!-- User Manager -->
             <div class="card">
-                <h3 style="margin-top: 0; color: #fff;">👤 Quick Add User</h3>
-                <form id="user-form" style="display: flex; gap: 5px;">
-                    <input type="text" id="user-name" required placeholder="Username">
-                    <button type="submit" style="width: auto; padding: 0 15px;">+</button>
-                </form>
-                <div id="user-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
-                    <!-- Users here -->
+                <h3 style="margin-top: 0; color: #fff;">RabbitMQ Mode</h3>
+                <div class="rabbitmq-toggle-row">
+                    <span id="rabbitmq-mode-badge" class="rabbitmq-mode-badge enabled">RabbitMQ Enabled</span>
+                    <label class="switch">
+                        <input type="checkbox" id="rabbitmq-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p id="rabbitmq-help-text" style="margin: 12px 0 0; color: #aaa; font-size: 0.9em;">
+                    Queue mode is ON: notifications are routed through RabbitMQ consumers.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top: 0; color: #fff;">Users & Approvals</h3>
+                <p style="color: #aaa; margin: 0 0 15px;">Newly registered users stay in pending state until approved by admin.</p>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <div style="font-size: 0.85em; color: #ffb347; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em;">
+                            Pending Approval
+                        </div>
+                        <div id="pending-user-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85em; color: #7ad97a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em;">
+                            Registered Users
+                        </div>
+                        <div id="user-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Content: Live Feed & Stats -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
-            
-            <!-- Quick Stats Row -->
+
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
                 <div class="card" style="padding: 15px; text-align: center; background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.2);">
                     <div style="font-size: 2em; font-weight: bold; color: #00d2ff;">Active</div>
@@ -83,9 +101,84 @@
                 </div>
             </div>
 
-            <!-- Feed -->
+            <div class="card">
+                <h3 style="margin-top: 0; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px;">Present vs Proposed System</h3>
+                <div class="system-compare-grid">
+                    <div class="system-compare-block present">
+                        <h4>Present Existing</h4>
+                        <div id="present-system-details">Loading...</div>
+                    </div>
+                    <div class="system-compare-block proposed">
+                        <h4>Proposed (Updated)</h4>
+                        <div id="proposed-system-details">Loading...</div>
+                    </div>
+                </div>
+                <div id="active-runtime-summary" class="runtime-summary">
+                    Checking active runtime mode...
+                </div>
+                <div class="practical-diff-grid">
+                    <div class="practical-diff-block present">
+                        <h4>Present System Practical Impact</h4>
+                        <div class="metric-line">
+                            <span>Messages impacted:</span>
+                            <strong id="present-impacted-count">0</strong>
+                        </div>
+                        <div class="metric-note">These notifications would be affected without a direct fallback path.</div>
+                    </div>
+                    <div class="practical-diff-block proposed">
+                        <h4>Proposed System Practical Outcome</h4>
+                        <div class="metric-line">
+                            <span>Messages saved:</span>
+                            <strong id="proposed-saved-count">0</strong>
+                        </div>
+                        <div class="metric-line">
+                            <span>Direct mode deliveries:</span>
+                            <strong id="direct-mode-count">0</strong>
+                        </div>
+                        <div class="metric-line">
+                            <span>Fallback deliveries:</span>
+                            <strong id="fallback-count">0</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="runtime-metrics-row">
+                    <div class="runtime-metric-item">Queue Processed: <strong id="queue-processed-count">0</strong></div>
+                    <div class="runtime-metric-item">Avg Queue Delay: <strong id="avg-queue-delay">0</strong> ms</div>
+                    <div class="runtime-metric-item">Avg Direct Delay: <strong id="avg-direct-delay">0</strong> ms</div>
+                </div>
+                <div class="graphs-grid">
+                    <div class="graph-panel">
+                        <div class="graph-head">
+                            <h4>Historical Delivery Trend</h4>
+                            <div class="graph-controls">
+                                <select id="history-range-select">
+                                    <option value="60">1 Hour</option>
+                                    <option value="180" selected>3 Hours</option>
+                                    <option value="720">12 Hours</option>
+                                    <option value="1440">24 Hours</option>
+                                </select>
+                                <select id="history-bucket-select">
+                                    <option value="1">1m Bucket</option>
+                                    <option value="5" selected>5m Bucket</option>
+                                    <option value="15">15m Bucket</option>
+                                </select>
+                            </div>
+                        </div>
+                        <canvas id="direct-fallback-analysis-chart"></canvas>
+                    </div>
+                    <div class="graph-panel">
+                        <h4>Historical Totals</h4>
+                        <canvas id="direct-fallback-bar-chart"></canvas>
+                    </div>
+                </div>
+                <h4 style="margin: 14px 0 8px; color: #ddd;">Recent Real-Time Flow</h4>
+                <div id="practical-event-feed" class="practical-event-feed">
+                    No flow events yet.
+                </div>
+            </div>
+
             <div class="card" style="flex: 1; display: flex; flex-direction: column;">
-                <h3 style="margin-top: 0; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px;">🔴 Live Traffic Feed</h3>
+                <h3 style="margin-top: 0; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px;">Live Traffic Feed</h3>
                 <div id="notification-feed" class="notification-feed" style="flex: 1; max-height: 600px;">
                     <div style="text-align: center; color: #555; padding-top: 100px;">
                         System Ready. Waiting for activity...
@@ -96,20 +189,7 @@
 
     </div>
 
-    <script src="app.js"></script>
-</body>
-</html>
-        <!-- Live Feed -->
-        <div class="card">
-            <h2>Live Notification Feed</h2>
-            <p style="color: #666; font-size: 0.9em;">Real-time stream from RabbitMQ & WebSocket</p>
-            <div id="notification-feed" class="notification-feed">
-                <!-- Notifications will appear here -->
-                <div style="text-align: center; color: #555; padding: 20px;">Waiting for alerts...</div>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

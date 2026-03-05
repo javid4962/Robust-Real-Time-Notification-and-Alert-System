@@ -1,6 +1,11 @@
 const API_URL = 'http://localhost:8080/api';
 let stompClient = null;
 let isAdmin = false;
+let isRabbitMqEnabled = true;
+let systemComparisonIntervalId = null;
+let historicalTrendsIntervalId = null;
+let analysisTrendChart = null;
+let analysisBarChart = null;
 
 // Connect to WebSocket on Load
 function connect() {
@@ -23,19 +28,15 @@ function connect() {
             // ADMIN: Load stats and history from DB
             loadStats();
             loadNotificationHistory();
+            loadRabbitMqStatus();
+            loadSystemComparison();
+            startSystemComparisonAutoRefresh();
+            loadHistoricalTrends();
+            startHistoricalTrendsAutoRefresh();
             
-            // Subscribe to public to get real-time updates
-            stompClient.subscribe('/topic/public', function (notification) {
-                // Refresh stats and history when new message arrives
-                // Optimization: Throttle refreshes if many messages arrive at once
-                if (!window.refreshPending) {
-                    window.refreshPending = true;
-                    setTimeout(() => {
-                        loadStats();
-                        loadNotificationHistory();
-                        window.refreshPending = false;
-                    }, 500);
-                }
+            // Subscribe to admin traffic stream (includes broadcast + targeted + batches).
+            stompClient.subscribe('/topic/admin/traffic', function () {
+                scheduleAdminRefresh();
             });
         } else {
             // USER PORTAL: Subscribe to topics
@@ -79,6 +80,341 @@ function setConnected(connected, user = '') {
     } else {
         status.innerText = '● System Offline';
         status.className = 'status-disconnected';
+    }
+}
+
+function scheduleAdminRefresh() {
+    if (!window.refreshPending) {
+        window.refreshPending = true;
+        setTimeout(() => {
+            loadStats();
+            loadNotificationHistory();
+            window.refreshPending = false;
+        }, 500);
+    }
+}
+
+async function loadRabbitMqStatus() {
+    const toggle = document.getElementById('rabbitmq-toggle');
+    if (!toggle) return;
+
+    try {
+        const response = await fetch(`${API_URL}/notifications/rabbitmq/status`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        isRabbitMqEnabled = data.enabled === true;
+        updateRabbitMqUiState();
+    } catch (e) {
+        console.error("Failed to load RabbitMQ status", e);
+    }
+}
+
+function renderSystemDetails(targetId, details) {
+    const target = document.getElementById(targetId);
+    if (!target || !details) return;
+
+    target.innerHTML = `
+        <div><strong>Flow:</strong> ${details.deliveryFlow}</div>
+        <div><strong>RabbitMQ:</strong> ${details.rabbitMqUsage}</div>
+        <div><strong>If RabbitMQ Down:</strong> ${details.whenRabbitMqUnavailable}</div>
+        <div><strong>UI Control:</strong> ${details.uiControl}</div>
+        ${details.directModeImpact ? `<div><strong>Direct Mode Impact:</strong> ${details.directModeImpact}</div>` : ''}
+        ${details.accuracy ? `<div><strong>Accuracy:</strong> ${details.accuracy}</div>` : ''}
+    `;
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function renderPathClass(path) {
+    switch (path) {
+        case 'QUEUE_CONSUMER':
+            return 'queue';
+        case 'DIRECT_MODE':
+            return 'direct';
+        case 'DIRECT_FALLBACK':
+            return 'fallback';
+        default:
+            return 'unknown';
+    }
+}
+
+function ensureAnalysisCharts() {
+    if (analysisTrendChart && analysisBarChart) return true;
+    if (typeof Chart === 'undefined') return false;
+
+    const trendCanvas = document.getElementById('direct-fallback-analysis-chart');
+    const barCanvas = document.getElementById('direct-fallback-bar-chart');
+    if (!trendCanvas || !barCanvas) return false;
+
+    const trendCtx = trendCanvas.getContext('2d');
+    const barCtx = barCanvas.getContext('2d');
+    if (!trendCtx || !barCtx) return false;
+
+    analysisTrendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Queue',
+                    data: [],
+                    borderColor: '#69f0ae',
+                    backgroundColor: 'rgba(105, 240, 174, 0.15)',
+                    tension: 0.3,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Direct',
+                    data: [],
+                    borderColor: '#2cc9ff',
+                    backgroundColor: 'rgba(44, 201, 255, 0.15)',
+                    tension: 0.3,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Fallback',
+                    data: [],
+                    borderColor: '#ffb347',
+                    backgroundColor: 'rgba(255, 179, 71, 0.15)',
+                    tension: 0.3,
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#ddd' } }
+            },
+            scales: {
+                x: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                y: { beginAtZero: true, ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+            }
+        }
+    });
+
+    analysisBarChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Queue Total', 'Direct Total', 'Fallback Total'],
+            datasets: [
+                {
+                    label: 'Deliveries',
+                    data: [0, 0, 0],
+                    backgroundColor: ['rgba(105, 240, 174, 0.6)', 'rgba(44, 201, 255, 0.6)', 'rgba(255, 179, 71, 0.6)'],
+                    borderColor: ['#69f0ae', '#2cc9ff', '#ffb347'],
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#ddd' } }
+            },
+            scales: {
+                x: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                y: { beginAtZero: true, ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+            }
+        }
+    });
+
+    return true;
+}
+
+function getHistoricalTrendOptions() {
+    const rangeElement = document.getElementById('history-range-select');
+    const bucketElement = document.getElementById('history-bucket-select');
+
+    return {
+        minutes: rangeElement ? parseInt(rangeElement.value, 10) : 180,
+        bucketMinutes: bucketElement ? parseInt(bucketElement.value, 10) : 5
+    };
+}
+
+function applyHistoricalTrends(data) {
+    if (!ensureAnalysisCharts()) return;
+
+    const labels = Array.isArray(data.labels) ? data.labels : [];
+    const queueSeries = Array.isArray(data.queueSeries) ? data.queueSeries : [];
+    const directSeries = Array.isArray(data.directSeries) ? data.directSeries : [];
+    const fallbackSeries = Array.isArray(data.fallbackSeries) ? data.fallbackSeries : [];
+    const totals = data.totals || {};
+
+    analysisTrendChart.data.labels = labels;
+    analysisTrendChart.data.datasets[0].data = queueSeries;
+    analysisTrendChart.data.datasets[1].data = directSeries;
+    analysisTrendChart.data.datasets[2].data = fallbackSeries;
+    analysisTrendChart.update('none');
+
+    analysisBarChart.data.datasets[0].data = [
+        totals.queue || 0,
+        totals.direct || 0,
+        totals.fallback || 0
+    ];
+    analysisBarChart.update('none');
+}
+
+async function loadHistoricalTrends() {
+    const options = getHistoricalTrendOptions();
+    try {
+        const response = await fetch(`${API_URL}/notifications/analytics/history?minutes=${options.minutes}&bucketMinutes=${options.bucketMinutes}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        applyHistoricalTrends(data);
+    } catch (e) {
+        console.error("Failed to load historical trends", e);
+    }
+}
+
+function startHistoricalTrendsAutoRefresh() {
+    if (historicalTrendsIntervalId) return;
+    historicalTrendsIntervalId = setInterval(loadHistoricalTrends, 10000);
+}
+
+function updatePracticalRealtime(practical) {
+    if (!practical) return;
+
+    const presentImpacted = practical.presentSystemImpacted || 0;
+    const proposedSaved = practical.proposedSystemSaved || 0;
+    const queueProcessed = practical.queueProcessed || 0;
+    const directModeProcessed = practical.directModeProcessed || 0;
+    const fallbackProcessed = practical.fallbackProcessed || 0;
+    const avgQueueDelayMs = practical.avgQueueDelayMs || 0;
+    const avgDirectDelayMs = practical.avgDirectDelayMs || 0;
+    const recentEvents = Array.isArray(practical.recentEvents) ? practical.recentEvents : [];
+
+    const presentImpactedEl = document.getElementById('present-impacted-count');
+    const proposedSavedEl = document.getElementById('proposed-saved-count');
+    const queueProcessedEl = document.getElementById('queue-processed-count');
+    const directModeEl = document.getElementById('direct-mode-count');
+    const fallbackEl = document.getElementById('fallback-count');
+    const avgQueueEl = document.getElementById('avg-queue-delay');
+    const avgDirectEl = document.getElementById('avg-direct-delay');
+    const eventFeed = document.getElementById('practical-event-feed');
+
+    if (presentImpactedEl) presentImpactedEl.innerText = presentImpacted;
+    if (proposedSavedEl) proposedSavedEl.innerText = proposedSaved;
+    if (queueProcessedEl) queueProcessedEl.innerText = queueProcessed;
+    if (directModeEl) directModeEl.innerText = directModeProcessed;
+    if (fallbackEl) fallbackEl.innerText = fallbackProcessed;
+    if (avgQueueEl) avgQueueEl.innerText = avgQueueDelayMs;
+    if (avgDirectEl) avgDirectEl.innerText = avgDirectDelayMs;
+
+    if (eventFeed) {
+        if (recentEvents.length === 0) {
+            eventFeed.innerHTML = 'No flow events yet.';
+        } else {
+            eventFeed.innerHTML = recentEvents.map(event => {
+                const path = event.path || 'UNKNOWN';
+                const pathClass = renderPathClass(path);
+                const id = event.notificationId ?? '-';
+                const target = event.target || 'BROADCAST';
+                const priority = event.priority || 'UNKNOWN';
+                const delay = event.delayMs ?? 0;
+                const time = event.processedAt ? new Date(event.processedAt).toLocaleTimeString() : '-';
+
+                return `
+                    <div class="practical-event-item">
+                        <span class="path-badge ${pathClass}">${escapeHtml(path)}</span>
+                        <span>#${escapeHtml(id)} ${escapeHtml(priority)} ${escapeHtml(target)}</span>
+                        <span>${escapeHtml(delay)}ms</span>
+                        <span>${escapeHtml(time)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+}
+
+async function loadSystemComparison() {
+    const runtimeSummary = document.getElementById('active-runtime-summary');
+    if (!runtimeSummary) return;
+
+    try {
+        const response = await fetch(`${API_URL}/notifications/system/comparison`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        renderSystemDetails('present-system-details', data.presentSystem);
+        renderSystemDetails('proposed-system-details', data.proposedSystem);
+        updatePracticalRealtime(data.practicalRealtime);
+
+        const runtime = data.currentRuntime || {};
+        runtimeSummary.className = `runtime-summary ${runtime.activePath === 'DIRECT_MODE' ? 'direct' : 'queue'}`;
+        const circuitSuffix = runtime.rabbitMqCircuitOpen ? ' RabbitMQ circuit is OPEN; direct fallback is short-circuited for speed.' : '';
+        runtimeSummary.innerText = (runtime.summary || 'Runtime mode information unavailable.') + circuitSuffix;
+    } catch (e) {
+        runtimeSummary.className = 'runtime-summary error';
+        runtimeSummary.innerText = 'Unable to load system comparison.';
+        console.error("Failed to load system comparison", e);
+    }
+}
+
+function startSystemComparisonAutoRefresh() {
+    if (systemComparisonIntervalId || !document.getElementById('active-runtime-summary')) return;
+    systemComparisonIntervalId = setInterval(loadSystemComparison, 3000);
+}
+
+function updateRabbitMqUiState() {
+    const toggle = document.getElementById('rabbitmq-toggle');
+    const badge = document.getElementById('rabbitmq-mode-badge');
+    const help = document.getElementById('rabbitmq-help-text');
+
+    if (!toggle || !badge || !help) return;
+
+    toggle.checked = isRabbitMqEnabled;
+    badge.className = `rabbitmq-mode-badge ${isRabbitMqEnabled ? 'enabled' : 'disabled'}`;
+    badge.innerText = isRabbitMqEnabled ? 'RabbitMQ Enabled' : 'RabbitMQ Disabled';
+    help.innerText = isRabbitMqEnabled
+        ? 'Queue mode is ON: notifications are routed through RabbitMQ consumers.'
+        : 'Queue mode is OFF: direct path is active and low-priority messages can be partially dropped under load.';
+}
+
+async function setRabbitMqStatus(enabled) {
+    const toggle = document.getElementById('rabbitmq-toggle');
+    if (!toggle) return;
+
+    toggle.disabled = true;
+    try {
+        const response = await fetch(`${API_URL}/notifications/rabbitmq/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        isRabbitMqEnabled = data.enabled === true;
+        updateRabbitMqUiState();
+        await loadSystemComparison();
+        showToast(isRabbitMqEnabled ? 'RabbitMQ enabled' : 'RabbitMQ disabled');
+    } catch (e) {
+        showToast('Failed to update RabbitMQ mode: ' + e.message, true);
+        toggle.checked = isRabbitMqEnabled;
+    } finally {
+        toggle.disabled = false;
     }
 }
 
@@ -208,30 +544,6 @@ async function sendNotification(event) {
     }
 }
 
-async function createUser(event) {
-    event.preventDefault();
-    const username = document.getElementById('user-name').value;
-    
-    try {
-        const response = await fetch(`${API_URL}/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, notificationsEnabled: true })
-        });
-
-        if (response.ok) {
-            showToast(`User ${username} created!`);
-            document.getElementById('user-form').reset();
-            loadUsers(); // Refresh list
-            if (isAdmin) loadStats(); // Update user count
-        } else {
-            showToast('Failed to create user', true);
-        }
-    } catch (e) {
-        showToast('Error: ' + e.message, true);
-    }
-}
-
 // ===== USER PORTAL FUNCTIONS =====
 
 function handleIncomingMessage(data) {
@@ -269,24 +581,98 @@ function showToast(msg, isError = false) {
     // You can implement a fancy toast notification here
 }
 
-// Load Users
+async function approveUser(userId, username) {
+    try {
+        const response = await fetch(`${API_URL}/users/${userId}/approve`, {
+            method: 'PUT'
+        });
+
+        if (response.ok) {
+            showToast(`User ${username} approved.`);
+            loadUsers();
+            if (isAdmin) loadStats();
+            return;
+        }
+
+        const error = await response.json();
+        showToast(error.error || `Failed to approve ${username}.`, true);
+    } catch (e) {
+        showToast('Error: ' + e.message, true);
+    }
+}
+
+// Load and render Users
 async function loadUsers() {
+    const userList = document.getElementById('user-list');
+    const pendingList = document.getElementById('pending-user-list');
+    if (!userList && !pendingList) return;
+
     try {
         const response = await fetch(`${API_URL}/users`);
-        if (response.ok) {
-            const users = await response.json();
-            const userList = document.getElementById('user-list');
-            userList.innerHTML = ''; // Clear current
-            
-            users.forEach(user => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const users = await response.json();
+        users.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+
+        if (userList) {
+            userList.innerHTML = '';
+        }
+        if (pendingList) {
+            pendingList.innerHTML = '';
+        }
+
+        let pendingCount = 0;
+        users.forEach(user => {
+            if (userList) {
                 const badge = document.createElement('span');
                 badge.className = 'badge';
-                badge.style.backgroundColor = '#444';
-                badge.style.fontSize = '0.9em';
+                badge.style.backgroundColor = user.approved ? '#244526' : '#4d3b12';
+                badge.style.border = `1px solid ${user.approved ? '#4caf50' : '#ffb347'}`;
+                badge.style.fontSize = '0.85em';
                 badge.style.padding = '5px 10px';
-                badge.innerText = user.username;
+                badge.innerText = `${user.username} ${user.approved ? '[APPROVED]' : '[PENDING]'}`;
                 userList.appendChild(badge);
-            });
+            }
+
+            if (!user.approved && pendingList) {
+                pendingCount += 1;
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.justifyContent = 'space-between';
+                row.style.alignItems = 'center';
+                row.style.gap = '10px';
+                row.style.padding = '8px 10px';
+                row.style.border = '1px solid #3f3f3f';
+                row.style.borderRadius = '8px';
+                row.style.background = 'rgba(255, 179, 71, 0.05)';
+
+                const details = document.createElement('div');
+                details.innerHTML = `
+                    <div style="font-weight: 600; color: #f4f4f4;">${user.username}</div>
+                    <div style="font-size: 0.8em; color: #aaa;">${user.email || 'No email'}</div>
+                `;
+
+                const approveBtn = document.createElement('button');
+                approveBtn.innerText = 'Approve';
+                approveBtn.style.width = 'auto';
+                approveBtn.style.padding = '8px 12px';
+                approveBtn.style.fontSize = '0.8em';
+                approveBtn.style.background = '#2e7d32';
+                approveBtn.style.border = 'none';
+                approveBtn.style.color = '#fff';
+                approveBtn.style.cursor = 'pointer';
+                approveBtn.onclick = () => approveUser(user.id, user.username);
+
+                row.appendChild(details);
+                row.appendChild(approveBtn);
+                pendingList.appendChild(row);
+            }
+        });
+
+        if (pendingList && pendingCount === 0) {
+            pendingList.innerHTML = '<div style="color:#777; font-size:0.85em;">No users waiting for approval.</div>';
         }
     } catch (e) {
         console.error("Failed to load users", e);
@@ -306,6 +692,22 @@ if (document.getElementById('notification-form')) {
     document.getElementById('notification-form').addEventListener('submit', sendNotification);
 }
 
-if (document.getElementById('user-form')) {
-    document.getElementById('user-form').addEventListener('submit', createUser);
+if (document.getElementById('rabbitmq-toggle')) {
+    document.getElementById('rabbitmq-toggle').addEventListener('change', (event) => {
+        setRabbitMqStatus(event.target.checked);
+    });
+    loadRabbitMqStatus();
+    loadSystemComparison();
+}
+
+const historyRangeSelect = document.getElementById('history-range-select');
+const historyBucketSelect = document.getElementById('history-bucket-select');
+if (historyRangeSelect) {
+    historyRangeSelect.addEventListener('change', loadHistoricalTrends);
+}
+if (historyBucketSelect) {
+    historyBucketSelect.addEventListener('change', loadHistoricalTrends);
+}
+if (historyRangeSelect || historyBucketSelect) {
+    loadHistoricalTrends();
 }
