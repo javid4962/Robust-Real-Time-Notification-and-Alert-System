@@ -1,4 +1,4 @@
-# RealTimeNotificationMS
+# RealTimeNotificationMS 
 
 RealTimeNotificationMS is an updated enterprise-style notification platform built with Spring Boot, RabbitMQ, WebSockets, MySQL, and a lightweight static frontend. It supports broadcast and user-targeted alerts, runtime switching between queue mode and direct mode, multi-target batch sending, approval-based user access, and delivery analytics that compare the present queue-only approach with the updated fallback-enabled design.
 
